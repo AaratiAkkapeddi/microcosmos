@@ -1,0 +1,201 @@
+@font-face {
+    font-family: "Cormorant Semibold";
+    src: url("./CormorantInfant-SemiBold.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Cormorant Semibold Italic";
+    src: url("./Cormorant-SemiBoldItalic.woff2") format("woff2");
+}
+* {
+    font-family: Helvetica, Arial, sans-serif;
+    text-align: center;
+}
+body{
+    background: black;
+    font-family: "Cormorant Semibold", serif;
+    color: whitesmoke;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+div {
+    margin: 0px;
+    padding: 0px;
+}
+
+img {
+    height: 256px;
+    width: 256px;
+    box-shadow: none ;
+}
+
+button {
+    padding: 5px 9px;
+    border: 1px solid black;
+    margin: 0px 5px 0px 0px;
+}
+
+#status {
+    margin-top: 0%;
+    height:0;
+    display: none;
+}
+#input, #output{
+    box-sizing: border-box;
+    border: 1px solid;
+}
+#app {
+    margin: 0px 0px 20px 0px;
+    /* display: inline-block; */
+    justify-content: center;
+    display: flex;
+    position: relative;
+    flex-direction: row;
+    align-items: center;
+}
+
+#input {
+    position: relative;
+    overflow: hidden;
+    /* border: 1px dotted rgb(224, 224, 224); */
+    display: inline;
+    border-radius: 0;
+    padding:0;
+    width: 512px;
+    height: 512px;
+    /* box-shadow: 0px 0px 50px rgba(224, 224, 224, 0.5); */
+}
+
+#template {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+    opacity: 0.8;
+    width: 512px;
+    height: 512px;
+    pointer-events: none;
+}
+
+
+
+#defaultCanvas0 {
+    margin-top: 20px;
+    /* filter: invert(100%); */
+    opacity: 0.8;
+    width: 512px !important;
+    height: 512px !important;
+}
+
+#output {
+    height: 512px;
+    position: relative;
+    padding: 0;
+    margin-left: -1px;
+    width: 512px;
+    border-radius: 0;
+    overflow: hidden;
+    /* object-fit: contain; */
+    z-index: 4;
+    opacity: 0.8;
+    background-color: black;
+    /* position: absolute;
+    z-index: -1;
+    top: 0;
+    left: 0; */
+     filter: contrast(130%) brightness(100%) grayscale(0%);
+    /* image-rendering: pixelated;
+  filter: contrast(140%) brightness(110%) ; */
+  /* width: 512px;
+  height: 512px; */
+  /* border: 1px dotted rgb(224, 224, 224); */
+  /* box-shadow: 0px 0px 50px rgba(224, 224, 224, 0.5); */
+
+}
+#output canvas{
+    margin-top: 20px;
+    display: block !important;
+    visibility: visible !important;
+    width: 512px !important;
+    height: 512px !important;
+}
+#clearBtn{
+    background: rgb(0, 0, 0);
+    color: whitesmoke;
+    position: fixed;
+    bottom:10px;
+    font-family: "Cormorant Semibold", serif;
+    border: 1px dotted whitesmoke;
+    text-transform: uppercase;
+    right:10px;
+    cursor: pointer;
+}
+#clearBtn:hover{
+    background: rgb(255, 255, 255);
+    color: black;
+    border: 1px solid black;
+}
+#randomBtn, #transferBtn{
+    display: none;
+}
+#colors div {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin: 0 10px 12px;
+    display: inline-block;
+}
+
+#red {
+    background: rgb(255, 0, 0);
+}
+
+#blue {
+    background: rgb(0, 0, 255);
+}
+
+#white {
+    background: white;
+    border: 1px solid rgb(236, 236, 236);
+}
+
+button:focus {
+    outline: 0;
+}
+
+button:active {
+    outline: none;
+    border: none;
+}
+
+
+
+@media(max-width: 768px){
+    #app {
+        flex-direction: column;
+        width: 100%;
+        overflow: hidden;
+        position: fixed;
+        left:0;
+        top:0;
+        padding-top: 20px;
+    }
+   #clearBtn{
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    right: 0;
+   }
+    #output{
+        margin-left:0;
+        margin-top: -1px;
+    }
+    #output, #output canvas, #template, #defaultCanvas0, #input {
+        height: 40vh !important;
+        width: 40vh !important;
+    }
+}
