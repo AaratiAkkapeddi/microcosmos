@@ -45,7 +45,9 @@ button {
 }
 #input, #output{
     box-sizing: border-box;
-    border: 1px solid;
+    border: 1px dashed rgba(244, 244, 244, 0.5);
+    outline: 1px solid rgba(244, 244, 244, 0.5);
+    border-radius: 100%;
 }
 #app {
     margin: 0px 0px 20px 0px;
@@ -62,7 +64,6 @@ button {
     overflow: hidden;
     /* border: 1px dotted rgb(224, 224, 224); */
     display: inline;
-    border-radius: 0;
     padding:0;
     width: 512px;
     height: 512px;
@@ -71,33 +72,36 @@ button {
 
 #template {
     position: absolute;
-    top: 20px;
+    top: 0;
     left: 50%;
     transform: translateX(-50%);
     z-index: 1;
-    opacity: 0.8;
+    opacity: 0.6;
     width: 512px;
     height: 512px;
     pointer-events: none;
+    mix-blend-mode: luminosity;
 }
 
 
 
 #defaultCanvas0 {
-    margin-top: 20px;
+    margin-top: 0;
     /* filter: invert(100%); */
     opacity: 0.8;
     width: 512px !important;
     height: 512px !important;
 }
-
+#output #template{
+    /* transform: scaleX(-1)  translateX(50%); */
+}
 #output {
     height: 512px;
     position: relative;
+    mix-blend-mode: lighten;
     padding: 0;
-    margin-left: -1px;
+    margin-left: -2%;
     width: 512px;
-    border-radius: 0;
     overflow: hidden;
     /* object-fit: contain; */
     z-index: 4;
@@ -117,7 +121,7 @@ button {
 
 }
 #output canvas{
-    margin-top: 20px;
+    margin-top: 0;
     display: block !important;
     visibility: visible !important;
     width: 512px !important;
