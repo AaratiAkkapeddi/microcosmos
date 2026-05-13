@@ -11,10 +11,10 @@ let stars = [];
 let isModelLoaded = false;
 let isTransferring = false;
 const BAYER_4x4 = [
-  [ 0,  8,  2, 10],
-  [12,  4, 14,  6],
-  [ 3, 11,  1,  9],
-  [15,  7, 13,  5]
+  [0, 8, 2, 10],
+  [12, 4, 14, 6],
+  [3, 11, 1, 9],
+  [15, 7, 13, 5]
 ].map(row => row.map(v => (v / 16) * 255));
 
 function ditherColorBayer(pg, levels = 8) {
@@ -79,23 +79,23 @@ function ditherFloydSteinberg(pg) {
 
       // Distribute error to neighbours
       if (x + 1 < w) {
-        r[i+1] = clamp(r[i+1] + errR * 7/16);
-        g[i+1] = clamp(g[i+1] + errG * 7/16);
-        b[i+1] = clamp(b[i+1] + errB * 7/16);
+        r[i + 1] = clamp(r[i + 1] + errR * 7 / 16);
+        g[i + 1] = clamp(g[i + 1] + errG * 7 / 16);
+        b[i + 1] = clamp(b[i + 1] + errB * 7 / 16);
       }
       if (y + 1 < h) {
         if (x - 1 >= 0) {
-          r[i+w-1] = clamp(r[i+w-1] + errR * 3/16);
-          g[i+w-1] = clamp(g[i+w-1] + errG * 3/16);
-          b[i+w-1] = clamp(b[i+w-1] + errB * 3/16);
+          r[i + w - 1] = clamp(r[i + w - 1] + errR * 3 / 16);
+          g[i + w - 1] = clamp(g[i + w - 1] + errG * 3 / 16);
+          b[i + w - 1] = clamp(b[i + w - 1] + errB * 3 / 16);
         }
-        r[i+w] = clamp(r[i+w] + errR * 5/16);
-        g[i+w] = clamp(g[i+w] + errG * 5/16);
-        b[i+w] = clamp(b[i+w] + errB * 5/16);
+        r[i + w] = clamp(r[i + w] + errR * 5 / 16);
+        g[i + w] = clamp(g[i + w] + errG * 5 / 16);
+        b[i + w] = clamp(b[i + w] + errB * 5 / 16);
         if (x + 1 < w) {
-          r[i+w+1] = clamp(r[i+w+1] + errR * 1/16);
-          g[i+w+1] = clamp(g[i+w+1] + errG * 1/16);
-          b[i+w+1] = clamp(b[i+w+1] + errB * 1/16);
+          r[i + w + 1] = clamp(r[i + w + 1] + errR * 1 / 16);
+          g[i + w + 1] = clamp(g[i + w + 1] + errG * 1 / 16);
+          b[i + w + 1] = clamp(b[i + w + 1] + errB * 1 / 16);
         }
       }
     }
@@ -103,7 +103,7 @@ function ditherFloydSteinberg(pg) {
 
   // Write back
   for (let i = 0; i < w * h; i++) {
-    pg.pixels[i * 4]     = r[i];
+    pg.pixels[i * 4] = r[i];
     pg.pixels[i * 4 + 1] = g[i];
     pg.pixels[i * 4 + 2] = b[i];
     pg.pixels[i * 4 + 3] = 255;
@@ -135,7 +135,7 @@ function setup() {
   clearBtn = select('#clearBtn');
   clearBtn.mousePressed(function () {
     clearCanvas();
-    setTimeout(function(){displayCanvas.background(0)}, 100);
+    setTimeout(function () { displayCanvas.background(0) }, 100);
   });
 
   // randomBtn = select('#randomBtn');
@@ -158,9 +158,15 @@ function draw() {
   for (let i = 0; i < stars.length; i++) {
     for (let j = 0; j < stars[i].connections.length; j++) {
       let neighbor = stars[i].connections[j];
-      stroke("ecdfac");
+      stroke("#ecdfac");
       strokeWeight(1);
       line(stars[i].x, stars[i].y, neighbor.x, neighbor.y);
+      displayCanvas.stroke(236, 223, 172, 255);
+      displayCanvas.strokeWeight(1);
+
+      if (mouseIsPressed) {
+        displayCanvas.line(stars[i].x, stars[i].y, neighbor.x, neighbor.y)
+      }
     }
   }
 
@@ -177,15 +183,22 @@ function draw() {
   for (let i = 0; i < stars.length; i++) {
     modelCanvas.noStroke();
     modelCanvas.fill(255);
-    modelCanvas.ellipse(stars[i].x/SCALE, stars[i].y/SCALE, stars[i].radius, stars[i].radius);
+    modelCanvas.ellipse(stars[i].x / SCALE, stars[i].y / SCALE, stars[i].radius, stars[i].radius);
   }
-   for (let i = 0; i < stars.length; i++) {
+  for (let i = 0; i < stars.length; i++) {
     fill("#000");
     ellipse(stars[i].x, stars[i].y, stars[i].radius, stars[i].radius);
     fill("#ecdfac");
-    textSize(20);
+    textSize((sin(frameCount * random(2)) + 20));
     textAlign(CENTER);
-    text("✷",stars[i].x, stars[i].y + 10);
+    text("✷", stars[i].x, stars[i].y + 10);
+
+    displayCanvas.fill(236, 223, 172, 255);
+    displayCanvas.textSize(20);
+    displayCanvas.textAlign(CENTER);
+    if (mouseIsPressed) {
+      displayCanvas.text("✷", stars[i].x, stars[i].y + 10);
+    }
   }
 }
 
@@ -314,7 +327,7 @@ function transfer() {
   isTransferring = true;
   statusMsg.html('Transferring...');
 
-  pix2pix.transfer(modelCanvas.elt, function(err, result) {
+  pix2pix.transfer(modelCanvas.elt, function (err, result) {
     isTransferring = false;
 
     if (err) {
@@ -331,8 +344,26 @@ function transfer() {
       //   displayCanvas.image(img, 0, 0, SIZE, SIZE);
       //   ditherColorBayer(displayCanvas, 3); // ← tweak levels here
       // });
-      loadImage(result.src, function(p5img) {
+      loadImage(result.src, function (p5img) {
         displayCanvas.image(p5img, 0, 0, SIZE * SCALE, SIZE * SCALE);
+        //   for (let i = 0; i < stars.length; i++) {
+        //   for (let j = 0; j < stars[i].connections.length; j++) {
+        //     let neighbor = stars[i].connections[j];
+        //     displayCanvas.stroke(236, 223, 172,255);
+        //     displayCanvas.strokeWeight(1);
+        //     displayCanvas.line(stars[i].x, stars[i].y, neighbor.x, neighbor.y)
+        //   }
+        // }
+        //         for (let i = 0; i < stars.length; i++) {
+
+        //   displayCanvas.fill(236, 223, 172,255);
+        //   displayCanvas.textSize((sin(frameCount * random(2) )+ 20));
+        //   displayCanvas.textAlign(CENTER);
+        //   if(displayCanvas.mouseX > 0 && displayCanvas.mouseX < displayCanvas.width){
+        //     displayCanvas.text("✷",stars[i].x, stars[i].y + 10);
+        //   }
+        //   // displayCanvas.text("✷",stars[i].x, stars[i].y + 10);
+        // }
         ditherFloydSteinberg(displayCanvas);
       });
     }
