@@ -1,5 +1,5 @@
 const SIZE = 256;
-const DISPLAY_SIZE = 1024;
+const DISPLAY_SIZE = window.innerWidth < window.innerHeight ? window.innerWidth : window.innerHeight;
 const SCALE = 4;
 let modelCanvas;
 let mainCanvas;
