@@ -26,7 +26,7 @@ let instructionNumber = getRandomIntInclusive(15, 20);
 let templateWings = document.querySelector("#template-wings");
 let instructions = document.querySelector("#instructions");
 if (instructions) instructions.innerHTML = "Click <b>" + instructionNumber + "</b> spots to continue.";
-if (templateWings) templateWings.src = "./images/flies/fly" + getRandomIntInclusive(0, 299) + ".jpg";
+if (templateWings) templateWings.src = "./images/flies/fly" + getRandomIntInclusive(0, 299) + ".png";
 
 function ditherFloydSteinberg(pg) {
   pg.loadPixels();
@@ -194,7 +194,7 @@ function draw() {
 function clearCanvas() {
   instructionNumber = getRandomIntInclusive(15, 20);
   if (instructions) instructions.innerHTML = "Click <b>" + instructionNumber + "</b> spots to continue.";
-  if (templateWings) templateWings.src = "./images/flies/fly" + getRandomIntInclusive(0, 299) + ".jpg";
+  if (templateWings) templateWings.src = "./images/flies/fly" + getRandomIntInclusive(0, 299) + ".png";
   templateWings.classList.remove("fadeOut");
   background(0);
   clickCounter = 0;

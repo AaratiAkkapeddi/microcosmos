@@ -128,7 +128,7 @@ button:active {
     width: 100vh;
     height: 100vh;
     pointer-events: none;
-    filter: contrast(150%);
+    filter: contrast(100%);
     opacity: 0.7;
 }
 #template-wings.fadeOut {
