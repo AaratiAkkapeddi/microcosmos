@@ -8,13 +8,98 @@ let modelCanvas;
 let mainCanvas;
 let statusMsg;
 let clearBtn;
+let clickCounter = 0;
 
 let ditheredResult = null;
 let stars = [];
 let isModelLoaded = false;
 let isTransferring = false;
 let pix2pix;
+function getRandomIntInclusive(min, max) {
+  const minCeiled = Math.ceil(min);
+  const maxFloored = Math.floor(max);
+  return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
+}
+let instructionNumber = getRandomIntInclusive(15,20);
+let templateWings = document.querySelector("#template-wings");
+let instructions = document.querySelector("#instructions");
+if (instructions) instructions.innerHTML = "Connect at least <b>" + instructionNumber + "</b> spots to continue.";
+if (templateWings) templateWings.src = "./images/flies/fly" + getRandomIntInclusive(0, 299) + ".jpg";
+function ditherFloydSteinberg(pg) {
+  pg.loadPixels();
+  let w = pg.width, h = pg.height;
 
+  // Work on float arrays per channel to carry error
+  let r = new Float32Array(w * h);
+  let g = new Float32Array(w * h);
+  let b = new Float32Array(w * h);
+
+  // Copy pixels into float arrays
+  for (let i = 0; i < w * h; i++) {
+    r[i] = pg.pixels[i * 4];
+    g[i] = pg.pixels[i * 4 + 1];
+    b[i] = pg.pixels[i * 4 + 2];
+  }
+
+  // Number of color levels per channel — 2 = harsh, 4 = balanced, 8 = subtle
+  const levels = 4;
+  const step = 255 / (levels - 1);
+
+  function quantize(val) {
+    return Math.round(Math.round(val / step) * step);
+  }
+
+  function clamp(val) {
+    return Math.min(255, Math.max(0, val));
+  }
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let i = y * w + x;
+
+      let oldR = r[i], oldG = g[i], oldB = b[i];
+      let newR = quantize(oldR), newG = quantize(oldG), newB = quantize(oldB);
+
+      r[i] = newR; g[i] = newG; b[i] = newB;
+
+      let errR = oldR - newR;
+      let errG = oldG - newG;
+      let errB = oldB - newB;
+
+      // Distribute error to neighbours
+      if (x + 1 < w) {
+        r[i + 1] = clamp(r[i + 1] + errR * 7 / 16);
+        g[i + 1] = clamp(g[i + 1] + errG * 7 / 16);
+        b[i + 1] = clamp(b[i + 1] + errB * 7 / 16);
+      }
+      if (y + 1 < h) {
+        if (x - 1 >= 0) {
+          r[i + w - 1] = clamp(r[i + w - 1] + errR * 3 / 16);
+          g[i + w - 1] = clamp(g[i + w - 1] + errG * 3 / 16);
+          b[i + w - 1] = clamp(b[i + w - 1] + errB * 3 / 16);
+        }
+        r[i + w] = clamp(r[i + w] + errR * 5 / 16);
+        g[i + w] = clamp(g[i + w] + errG * 5 / 16);
+        b[i + w] = clamp(b[i + w] + errB * 5 / 16);
+        if (x + 1 < w) {
+          r[i + w + 1] = clamp(r[i + w + 1] + errR * 1 / 16);
+          g[i + w + 1] = clamp(g[i + w + 1] + errG * 1 / 16);
+          b[i + w + 1] = clamp(b[i + w + 1] + errB * 1 / 16);
+        }
+      }
+    }
+  }
+
+  // Write back
+  for (let i = 0; i < w * h; i++) {
+    pg.pixels[i * 4] = r[i];
+    pg.pixels[i * 4 + 1] = g[i];
+    pg.pixels[i * 4 + 2] = b[i];
+    pg.pixels[i * 4 + 3] = 255;
+  }
+
+  pg.updatePixels();
+}
 const BAYER_4x4 = [
   [0, 8, 2, 10],
   [12, 4, 14, 6],
@@ -185,7 +270,10 @@ function handlePointer(x, y, isDrag = false) {
   if (!inCanvasBounds(x, y)) return;
 
   const star = new Star(x, y);
-
+  clickCounter += 1;
+  if(clickCounter > instructionNumber){
+    templateWings.style.display = "none";
+  }
   const closest = getClosestStar(x, y);
   if (closest && closest.distance < CONNECT_DISTANCE * (isDrag ? 1 : SCALE)) {
     star.connections.push(closest.star);

@@ -1,10 +1,10 @@
 :root {
     --bg: black;
-    --text: whitesmoke;
+    --text: rgba(236, 223, 172, 0.7);
     --border: rgba(236, 223, 172, 0.7);
     --button-bg: black;
-    --button-color: whitesmoke;
-    --button-border: whitesmoke;
+    --button-color: rgba(236, 223, 172, 0.7);
+    --button-border: rgba(236, 223, 172, 0.7);
     --button-hover-bg: white;
     --button-hover-color: black;
 }
@@ -98,7 +98,6 @@ button:active {
     height: 100vh;
     position: relative;
     mix-blend-mode: lighten;
-    margin-left: -2%;
     padding: 0;
     overflow: hidden;
     z-index: 4;
@@ -129,6 +128,7 @@ button:active {
     width: 100vh;
     height: 100vh;
     pointer-events: none;
+    filter: contrast(150%);
     opacity: 0.7;
 }
 
@@ -138,10 +138,22 @@ button:active {
 }
 
 #template-wings {
-    z-index: 0;
-    mix-blend-mode: luminosity;
+    z-index: 1;
+    mix-blend-mode: plus-lighter;
+    opacity: 0.4;
 }
-
+#instructions {
+    position: fixed;
+    top: 60px;
+    width: 100%;
+    left: 0;
+    font-size: 24px;
+    text-shadow: 10px 10px 10px rgba(0, 0, 0, 0.7);
+    font-family: var(--font-family);
+    z-index: 3;
+    text-align: center;
+    color:var(--text);
+}
 #clearBtn {
     position: fixed;
     bottom: 10px;
