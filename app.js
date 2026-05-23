@@ -116,6 +116,7 @@ function ditherFloydSteinberg(pg) {
 
 
 function setup() {
+  pixelDensity(1);
   inputCanvas = createCanvas(SIZE * SCALE, SIZE * SCALE);
   inputCanvas.class('border-box').parent('input');
   modelCanvas = createGraphics(SIZE, SIZE);
@@ -145,7 +146,7 @@ function setup() {
   //   inputImg = loadImage(src[index]);
   // });
 
-  pixelDensity(1);
+
   pix2pix = ml5.pix2pix('./model/flies.pict', modelLoaded);
 }
 
