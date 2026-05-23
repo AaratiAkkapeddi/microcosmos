@@ -233,9 +233,20 @@ function clearCanvas() {
   instructionNumber = getRandomIntInclusive(15, 20);
   if (instructions) instructions.innerHTML = "Click <b>" + instructionNumber + "</b> spots to continue.";
   if (templateWings) templateWings.src = "./images/flies/fly" + getRandomIntInclusive(0, 299) + ".png";
-  templateWings.classList.remove("fadeOut");
+  if (templateWings) templateWings.classList.remove("fadeOut");
+
+  // close lightbox if open and clear its content
+  const lightbox = document.querySelector('#light-box');
+  if (lightbox) {
+    lightbox.style.display = 'none';
+    const contentDiv = lightbox.querySelector('#light-box-content-text');
+    if (contentDiv) contentDiv.innerHTML = '';
+  }
+
+  // reset canvas/state
   background(0);
   clickCounter = 0;
+  stars.forEach(s => s.selected = false);
   stars = [];
   ditheredResult = null;
   background(0);
