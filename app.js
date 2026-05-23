@@ -25,7 +25,7 @@ function getRandomIntInclusive(min, max) {
 let instructionNumber = getRandomIntInclusive(15, 20);
 let templateWings = document.querySelector("#template-wings");
 let instructions = document.querySelector("#instructions");
-if (instructions) instructions.innerHTML = "Connect <b>" + instructionNumber + "</b> spots to continue.";
+if (instructions) instructions.innerHTML = "Click <b>" + instructionNumber + "</b> spots to continue.";
 if (templateWings) templateWings.src = "./images/flies/fly" + getRandomIntInclusive(0, 299) + ".jpg";
 
 function ditherFloydSteinberg(pg) {
@@ -185,12 +185,23 @@ function draw() {
   drawConnections();
   drawStars();
   updateModelCanvas();
+  if(clickCounter == 0){
+    ditheredResult = null;
+    background(0);
+  }
 }
 
 function clearCanvas() {
+  instructionNumber = getRandomIntInclusive(15, 20);
+  if (instructions) instructions.innerHTML = "Click <b>" + instructionNumber + "</b> spots to continue.";
+  if (templateWings) templateWings.src = "./images/flies/fly" + getRandomIntInclusive(0, 299) + ".jpg";
+  templateWings.classList.remove("fadeOut");
+  background(0);
+  clickCounter = 0;
   stars = [];
   ditheredResult = null;
   background(0);
+
 }
 
 function drawResult() {
@@ -241,13 +252,21 @@ function updateModelCanvas() {
 }
 
 function mousePressed() {
-  // After all stars are placed, clicks toggle selection instead of adding stars
   if (clickCounter >= instructionNumber) {
+    let clickedStar = null;
+
     stars.forEach(star => {
-      if (dist(mouseX, mouseY, star.x, star.y) < 20) {
-        star.selected = !star.selected;
+      if (!clickedStar && dist(mouseX, mouseY, star.x, star.y) < 20) {
+        clickedStar = star;
       }
     });
+
+    if (clickedStar) {
+      const willSelect = !clickedStar.selected;
+      stars.forEach(star => star.selected = false);
+      clickedStar.selected = willSelect;
+    }
+
     return;
   }
 
@@ -312,8 +331,11 @@ function handlePointer(x, y, isDrag = false) {
   stars.push(star);
 
   if (clickCounter === instructionNumber) {
-    if (templateWings) templateWings.style.display = "none";
+
+    if (templateWings) templateWings.classList.add("fadeOut");
     if (instructions) instructions.innerHTML = "Click the stars to learn about the network";
+
+    
   }
 }
 
@@ -344,7 +366,7 @@ class Star {
     this.noiseOffsetX = random(0, 1000);
     this.noiseOffsetY = random(1000, 2000);
     this.radius = 5;
-    this.driftRange = 15;
+    this.driftRange = 0;
     this.connections = [];
     this.x = x;
     this.y = y;
@@ -355,6 +377,9 @@ class Star {
     this.y = this.originY + map(noise(this.noiseOffsetY), 0, 1, -this.driftRange, this.driftRange);
     this.noiseOffsetX += 0.03;
     this.noiseOffsetY += 0.03;
+    if(clickCounter >= instructionNumber){
+      this.driftRange = 15;
+    }
   }
 }
 
@@ -363,7 +388,7 @@ function modelLoaded() {
   isModelLoaded = true;
 
   setInterval(() => {
-    if (isModelLoaded && !isTransferring && stars.length > 0) {
+    if (isModelLoaded && !isTransferring && stars.length > 0 && clickCounter >= instructionNumber) {
       transfer();
     }
   }, TRANSFER_INTERVAL_MS);
