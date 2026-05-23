@@ -4,8 +4,9 @@ const SCALE = 4;
 let modelCanvas;
 let displayCanvas;
 let inputImg, inputCanvas, output, statusMsg, pix2pix, randomBtn, clearBtn, transferBtn;
-
+let latestResult = null; // store the pix2pix output
 let stars = [];
+let ditheredResult = null;
 
 // SAFETY FLAGS
 let isModelLoaded = false;
@@ -112,7 +113,53 @@ function ditherFloydSteinberg(pg) {
   pg.updatePixels();
 }
 
+function ditherFloydSteinbergBW(pg) {
+  pg.loadPixels();
+  let w = pg.width, h = pg.height;
 
+  // Convert to single grayscale channel
+  let gray = new Float32Array(w * h);
+  for (let i = 0; i < w * h; i++) {
+    let r = pg.pixels[i * 4];
+    let g = pg.pixels[i * 4 + 1];
+    let b = pg.pixels[i * 4 + 2];
+    // Luminance-weighted mix looks more natural than a flat average
+    gray[i] = 0.299 * r + 0.587 * g + 0.114 * b;
+  }
+
+  function clamp(val) { return Math.min(255, Math.max(0, val)); }
+// before your dither loop, after filling the gray array:
+for (let i = 0; i < w * h; i++) {
+  let v = gray[i] / 255;
+  gray[i] = Math.pow(v, 2.8) * 200; // >1 = darker midtones, 200 = muted white cap
+}
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let i = y * w + x;
+      let oldVal = gray[i];
+      let newVal = oldVal < 100 ? 0 : 150; // pure black or white
+      gray[i] = newVal;
+      let err = oldVal - newVal;
+
+      if (x + 1 < w)         gray[i + 1]     = clamp(gray[i + 1]     + err * 7 / 16);
+      if (y + 1 < h) {
+        if (x - 1 >= 0)       gray[i + w - 1] = clamp(gray[i + w - 1] + err * 3 / 16);
+                               gray[i + w]     = clamp(gray[i + w]     + err * 5 / 16);
+        if (x + 1 < w)        gray[i + w + 1] = clamp(gray[i + w + 1] + err * 1 / 16);
+      }
+    }
+  }
+
+  // Write back — same value to R, G, B
+  for (let i = 0; i < w * h; i++) {
+    pg.pixels[i * 4]     = gray[i];
+    pg.pixels[i * 4 + 1] = gray[i];
+    pg.pixels[i * 4 + 2] = gray[i];
+    pg.pixels[i * 4 + 3] = 255;
+  }
+
+  pg.updatePixels();
+}
 
 
 function setup() {
@@ -151,7 +198,17 @@ function setup() {
 }
 
 function draw() {
+   displayCanvas.background(0);
 
+  // 1. Draw the latest dithered result if we have one
+  // if (latestResult) {
+  //   displayCanvas.image(latestResult, 0, 0, SIZE * SCALE, SIZE * SCALE);
+  //   ditherFloydSteinbergBW(displayCanvas);
+  // }
+  if (ditheredResult) {
+    displayCanvas.image(ditheredResult, 0, 0, SIZE * SCALE, SIZE * SCALE);
+  }
+  drawStarsOnCanvas();
   background(0);
 
 
@@ -162,12 +219,12 @@ function draw() {
       stroke("#ecdfac");
       strokeWeight(1);
       line(stars[i].x, stars[i].y, neighbor.x, neighbor.y);
-      displayCanvas.stroke(236, 223, 172, 255);
-      displayCanvas.strokeWeight(1);
+      // displayCanvas.stroke(236, 223, 172, 255);
+      // displayCanvas.strokeWeight(1);
 
-      if (mouseIsPressed) {
-        displayCanvas.line(stars[i].x, stars[i].y, neighbor.x, neighbor.y)
-      }
+      // if (mouseIsPressed) {
+      //   displayCanvas.line(stars[i].x, stars[i].y, neighbor.x, neighbor.y)
+      // }
     }
   }
 
@@ -194,13 +251,14 @@ function draw() {
     textAlign(CENTER);
     text("✷", stars[i].x, stars[i].y + 10);
 
-    displayCanvas.fill(236, 223, 172, 255);
-    displayCanvas.textSize(20);
-    displayCanvas.textAlign(CENTER);
-    if (mouseIsPressed) {
-      displayCanvas.text("✷", stars[i].x, stars[i].y + 10);
-    }
+    // displayCanvas.fill(236, 223, 172, 255);
+    // displayCanvas.textSize(20);
+    // displayCanvas.textAlign(CENTER);
+    // if (mouseIsPressed) {
+    //   displayCanvas.text("✷", stars[i].x, stars[i].y + 10);
+    // }
   }
+  drawStarsOnCanvas();
 }
 
 
@@ -262,7 +320,23 @@ function mouseDragged() {
     }
   }
 }
-
+function drawStarsOnCanvas(){
+   // Redraw stars on top of the fresh dithered frame
+  for (let i = 0; i < stars.length; i++) {
+    for (let j = 0; j < stars[i].connections.length; j++) {
+      let neighbor = stars[i].connections[j];
+      displayCanvas.stroke(236, 223, 172, 255);
+      displayCanvas.strokeWeight(1);
+      displayCanvas.line(stars[i].x, stars[i].y, neighbor.x, neighbor.y);
+    }
+  }
+  for (let i = 0; i < stars.length; i++) {
+    displayCanvas.fill(236, 223, 172, 255);
+    displayCanvas.textSize(20);
+    displayCanvas.textAlign(CENTER);
+    displayCanvas.text("✷", stars[i].x, stars[i].y + 10);
+  }
+}
 // THE TETHERED STAR PHYSICS CLASS
 class Star {
   constructor(x, y) {
@@ -271,6 +345,8 @@ class Star {
 
     this.noiseOffsetX = random(0, 1000);
     this.noiseOffsetY = random(1000, 2000);
+    // this.noiseOffsetX = 0;
+    // this.noiseOffsetY = 0;
 
     this.radius = 5;
     this.driftRange = 10; // Tighter drift for a cleaner look
@@ -360,7 +436,12 @@ function transfer() {
       //   ditherColorBayer(displayCanvas, 3); // ← tweak levels here
       // });
       loadImage(result.src, function (p5img) {
-        displayCanvas.image(p5img, 0, 0, SIZE * SCALE, SIZE * SCALE);
+        let tmp = createGraphics(SIZE * SCALE, SIZE * SCALE);
+  tmp.pixelDensity(1);
+  tmp.image(p5img, 0, 0, SIZE * SCALE, SIZE * SCALE);
+  ditherFloydSteinbergBW(tmp);
+  ditheredResult = tmp; // store the already-dithered graphics
+        // displayCanvas.image(p5img, 0, 0, SIZE * SCALE, SIZE * SCALE);
         //   for (let i = 0; i < stars.length; i++) {
         //   for (let j = 0; j < stars[i].connections.length; j++) {
         //     let neighbor = stars[i].connections[j];
@@ -379,7 +460,8 @@ function transfer() {
         //   }
         //   // displayCanvas.text("✷",stars[i].x, stars[i].y + 10);
         // }
-        ditherFloydSteinberg(displayCanvas);
+        // drawStarsOnCanvas();
+        // ditherFloydSteinbergBW(displayCanvas);
       });
     }
   });
