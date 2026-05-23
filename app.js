@@ -1,7 +1,7 @@
 const SIZE = 256;
 const SCALE = 4;
 const CONNECT_DISTANCE = 60;
-const TRANSFER_INTERVAL_MS = 500;
+const TRANSFER_INTERVAL_MS = 200;
 const STAR_COLOR = [236, 223, 172, 255];
 
 let modelCanvas;
@@ -15,33 +15,33 @@ let stars = [];
 let isModelLoaded = false;
 let isTransferring = false;
 let pix2pix;
+
 function getRandomIntInclusive(min, max) {
   const minCeiled = Math.ceil(min);
   const maxFloored = Math.floor(max);
   return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled);
 }
-let instructionNumber = getRandomIntInclusive(15,20);
+
+let instructionNumber = getRandomIntInclusive(15, 20);
 let templateWings = document.querySelector("#template-wings");
 let instructions = document.querySelector("#instructions");
 if (instructions) instructions.innerHTML = "Connect <b>" + instructionNumber + "</b> spots to continue.";
 if (templateWings) templateWings.src = "./images/flies/fly" + getRandomIntInclusive(0, 299) + ".jpg";
+
 function ditherFloydSteinberg(pg) {
   pg.loadPixels();
   let w = pg.width, h = pg.height;
 
-  // Work on float arrays per channel to carry error
   let r = new Float32Array(w * h);
   let g = new Float32Array(w * h);
   let b = new Float32Array(w * h);
 
-  // Copy pixels into float arrays
   for (let i = 0; i < w * h; i++) {
     r[i] = pg.pixels[i * 4];
     g[i] = pg.pixels[i * 4 + 1];
     b[i] = pg.pixels[i * 4 + 2];
   }
 
-  // Number of color levels per channel — 2 = harsh, 4 = balanced, 8 = subtle
   const levels = 4;
   const step = 255 / (levels - 1);
 
@@ -66,7 +66,6 @@ function ditherFloydSteinberg(pg) {
       let errG = oldG - newG;
       let errB = oldB - newB;
 
-      // Distribute error to neighbours
       if (x + 1 < w) {
         r[i + 1] = clamp(r[i + 1] + errR * 7 / 16);
         g[i + 1] = clamp(g[i + 1] + errG * 7 / 16);
@@ -90,7 +89,6 @@ function ditherFloydSteinberg(pg) {
     }
   }
 
-  // Write back
   for (let i = 0; i < w * h; i++) {
     pg.pixels[i * 4] = r[i];
     pg.pixels[i * 4 + 1] = g[i];
@@ -100,6 +98,7 @@ function ditherFloydSteinberg(pg) {
 
   pg.updatePixels();
 }
+
 const BAYER_4x4 = [
   [0, 8, 2, 10],
   [12, 4, 14, 6],
@@ -176,8 +175,6 @@ function setup() {
   clearBtn = select('#clearBtn');
   clearBtn.mousePressed(clearCanvas);
 
-
-
   pix2pix = ml5.pix2pix('./model/flies.pict', modelLoaded);
 }
 
@@ -216,10 +213,14 @@ function drawConnections() {
 function drawStars() {
   noStroke();
   fill(...STAR_COLOR);
-  textSize(20);
   textAlign(CENTER, CENTER);
 
   stars.forEach(star => {
+    if (clickCounter >= instructionNumber && star.selected) {
+      textSize(50);
+    } else {
+      textSize(20);
+    }
     text('✷', star.x, star.y);
   });
 }
@@ -240,11 +241,22 @@ function updateModelCanvas() {
 }
 
 function mousePressed() {
+  // After all stars are placed, clicks toggle selection instead of adding stars
+  if (clickCounter >= instructionNumber) {
+    stars.forEach(star => {
+      if (dist(mouseX, mouseY, star.x, star.y) < 20) {
+        star.selected = !star.selected;
+      }
+    });
+    return;
+  }
+
   handlePointer(mouseX, mouseY);
 }
 
 function mouseDragged() {
   if (!inCanvasBounds(mouseX, mouseY)) return;
+  if (clickCounter >= instructionNumber) return;
 
   const lastStar = stars[stars.length - 1];
   if (!lastStar || dist(mouseX, mouseY, lastStar.originX, lastStar.originY) > 25) {
@@ -254,6 +266,16 @@ function mouseDragged() {
 
 function touchStarted() {
   if (touches.length > 0) {
+    // After all stars are placed, taps toggle selection
+    if (clickCounter >= instructionNumber) {
+      stars.forEach(star => {
+        if (dist(touches[0].x, touches[0].y, star.x, star.y) < 20) {
+          star.selected = !star.selected;
+        }
+      });
+      return false;
+    }
+
     handlePointer(touches[0].x, touches[0].y);
   }
   return false;
@@ -268,21 +290,13 @@ function touchMoved() {
 
 function handlePointer(x, y, isDrag = false) {
   if (!inCanvasBounds(x, y)) return;
-  if(clickCounter == instructionNumber){
-    return;
-  }
-  clickCounter += 1;
-  let star;
-  if(clickCounter <= instructionNumber){
-     star = new Star(x, y);
-     if (instructions) instructions.innerHTML = "Connect <b>" + (instructionNumber - clickCounter) + "</b> spots to continue.";
+  if (clickCounter >= instructionNumber) return;
 
-  }
-  
-  if(clickCounter == instructionNumber){
-    templateWings.style.display = "none";
-    return
-  }
+  const star = new Star(x, y);
+  clickCounter += 1;
+
+  if (instructions) instructions.innerHTML = "Connect <b>" + Math.max(0, instructionNumber - clickCounter) + "</b> spots to continue.";
+
   const closest = getClosestStar(x, y);
   if (closest && closest.distance < CONNECT_DISTANCE * (isDrag ? 1 : SCALE)) {
     star.connections.push(closest.star);
@@ -296,6 +310,11 @@ function handlePointer(x, y, isDrag = false) {
   }
 
   stars.push(star);
+
+  if (clickCounter === instructionNumber) {
+    if (templateWings) templateWings.style.display = "none";
+    if (instructions) instructions.innerHTML = "Click the stars to learn about the network";
+  }
 }
 
 function inCanvasBounds(x, y) {
@@ -321,10 +340,11 @@ class Star {
   constructor(x, y) {
     this.originX = x;
     this.originY = y;
+    this.selected = false;
     this.noiseOffsetX = random(0, 1000);
     this.noiseOffsetY = random(1000, 2000);
     this.radius = 5;
-    this.driftRange = 10;
+    this.driftRange = 15;
     this.connections = [];
     this.x = x;
     this.y = y;
@@ -333,8 +353,8 @@ class Star {
   update() {
     this.x = this.originX + map(noise(this.noiseOffsetX), 0, 1, -this.driftRange, this.driftRange);
     this.y = this.originY + map(noise(this.noiseOffsetY), 0, 1, -this.driftRange, this.driftRange);
-    this.noiseOffsetX += 0.05;
-    this.noiseOffsetY += 0.05;
+    this.noiseOffsetX += 0.03;
+    this.noiseOffsetY += 0.03;
   }
 }
 
