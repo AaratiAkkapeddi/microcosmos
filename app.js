@@ -4,6 +4,30 @@ const CONNECT_DISTANCE = 60;
 const TRANSFER_INTERVAL_MS = 200;
 const STAR_COLOR = [236, 223, 172, 255];
 
+const STAR_TEXTS = [
+  "<img id='light-box-image' src='./images/test.png'><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>",
+  "The sections of De finibus bonorum et malorum from which Lorem ipsum ultimately derives is one in which Cicero promotes obtaining pleasure rationally instead of impulsively, in his home city of Cumae between himself and Lucius Manlius Torquatus, a young Epicurean, while another young Roman, Gaius Valerius Triarius, listens on. The relevant sections as printed in the source is reproduced below with fragments used in Lorem ipsum underlined. Letters in brackets were added to Lorem ipsum and were not present in the source text: ",
+  "Text for star 2",
+  "Text for star 3",
+  "Text for star 4",
+    "Text for star 0",
+  "Text for star 1",
+  "Text for star 2",
+  "Text for star 3",
+  "Text for star 4",
+    "Text for star 0",
+  "Text for star 1",
+  "Text for star 2",
+  "Text for star 3",
+  "Text for star 4",
+    "Text for star 0",
+  "Text for star 1",
+  "Text for star 2",
+  "Text for star 3",
+  "Text for star 4",
+  // ...add more as needed
+];
+
 let modelCanvas;
 let mainCanvas;
 let statusMsg;
@@ -175,6 +199,14 @@ function setup() {
   clearBtn = select('#clearBtn');
   clearBtn.mousePressed(clearCanvas);
 
+  const closeBtn = document.querySelector('#close-btn');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      const lightbox = document.querySelector('#light-box');
+      if (lightbox) lightbox.style.display = 'none';
+    });
+  }
+
   pix2pix = ml5.pix2pix('./model/flies.pict', modelLoaded);
 }
 
@@ -254,10 +286,12 @@ function updateModelCanvas() {
 function mousePressed() {
   if (clickCounter >= instructionNumber) {
     let clickedStar = null;
+    let clickedIndex = null;
 
-    stars.forEach(star => {
+    stars.forEach((star, index) => {
       if (!clickedStar && dist(mouseX, mouseY, star.x, star.y) < 20) {
         clickedStar = star;
+        clickedIndex = index;
       }
     });
 
@@ -265,6 +299,17 @@ function mousePressed() {
       const willSelect = !clickedStar.selected;
       stars.forEach(star => star.selected = false);
       clickedStar.selected = willSelect;
+
+      const lightbox = document.querySelector("#light-box");
+      if (willSelect && lightbox && clickedIndex !== null && STAR_TEXTS[clickedIndex]) {
+        const contentDiv = lightbox.querySelector("#light-box-content-text");
+        if (contentDiv) {
+          contentDiv.innerHTML = STAR_TEXTS[clickedIndex];
+        }
+        lightbox.style.display = "block";
+      } else if (lightbox) {
+        lightbox.style.display = "none";
+      }
     }
 
     return;
@@ -314,7 +359,7 @@ function handlePointer(x, y, isDrag = false) {
   const star = new Star(x, y);
   clickCounter += 1;
 
-  if (instructions) instructions.innerHTML = "Connect <b>" + Math.max(0, instructionNumber - clickCounter) + "</b> spots to continue.";
+  if (instructions) instructions.innerHTML = "Click <b>" + Math.max(0, instructionNumber - clickCounter) + "</b> spots to continue.";
 
   const closest = getClosestStar(x, y);
   if (closest && closest.distance < CONNECT_DISTANCE * (isDrag ? 1 : SCALE)) {

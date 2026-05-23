@@ -135,6 +135,39 @@ button:active {
     opacity: 0.4;
     animation: fadeOut 1s forwards;
 }
+#close-btn{
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 24px;
+    cursor: pointer;
+}
+#light-box{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: auto;
+    height: auto;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 5;
+    border: 1px solid var(--text);
+    padding: 30px;
+    padding-top: 60px;
+    max-width: 25%;
+    display: none;
+}
+#light-box img{
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+}
+#light-box-content p{
+    text-align: left;
+    line-height: 1.3;
+}
 @keyframes fadeOut {
     to {
         opacity: 0;
@@ -161,13 +194,14 @@ button:active {
 #instructions {
     position: fixed;
     top: 60px;
-    width: 100%;
-    left: 0;
+    width: 20%;
+    right: 0;
+    padding: 20px;
     font-size: 24px;
     text-shadow: 10px 10px 10px rgba(0, 0, 0, 0.7);
     font-family: var(--font-family);
     z-index: 3;
-    text-align: center;
+    text-align: left;
     color:var(--text);
 }
 #clearBtn {
