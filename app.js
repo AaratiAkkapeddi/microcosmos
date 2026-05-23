@@ -203,7 +203,13 @@ function setup() {
   if (closeBtn) {
     closeBtn.addEventListener('click', () => {
       const lightbox = document.querySelector('#light-box');
-      if (lightbox) lightbox.style.display = 'none';
+      if (lightbox) {
+        lightbox.style.display = 'none';
+        const contentDiv = lightbox.querySelector('#light-box-content-text');
+        if (contentDiv) contentDiv.innerHTML = '';
+      }
+      // deselect any selected star when the lightbox is closed
+      stars.forEach(star => star.selected = false);
     });
   }
 

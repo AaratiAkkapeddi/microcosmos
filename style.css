@@ -7,6 +7,7 @@
     --button-border: rgba(236, 223, 172, 0.7);
     --button-hover-bg: white;
     --button-hover-color: black;
+    --font-family: "Cormorant Semibold", serif;
 }
 
 @font-face {
@@ -22,7 +23,7 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: Helvetica, Arial, sans-serif;
+    font-family: var(--font-family), sans-serif;
     text-align: center;
 }
 
@@ -260,7 +261,29 @@ button:active {
         margin-left: 0;
         margin-top: -1px;
     }
-
+    #instructions{
+        width: 100%;
+        text-align: center;
+        top:20px;
+        font-size: 17px;
+    }
+    #light-box{
+        bottom:0;
+        padding: 20px;
+        top:auto;
+        max-width: 100%;
+    }
+    #light-box img{
+        max-width: 50%;
+    }
+    #light-box-content{
+        max-height: 25vh;
+        overflow: scroll;
+        font-size: 17px;
+    }
+#light-box-content-text {
+    font-size: 17px;
+}
     #output,
     #output canvas,
     #template,
