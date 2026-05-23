@@ -202,6 +202,20 @@ function draw() {
   }
 }
 
+
+function touchStarted() {
+  mouseX = touches[0].x;
+  mouseY = touches[0].y;
+  mousePressed();
+  return false; // prevents scrolling
+}
+
+function touchMoved() {
+  mouseX = touches[0].x;
+  mouseY = touches[0].y;
+  mouseDragged();
+  return false;
+}
 // When you click, drop a new floating star
 function mousePressed() {
   if (mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height) {
@@ -292,7 +306,7 @@ function modelLoaded() {
     if (isModelLoaded && !isTransferring && stars.length > 0) {
       transfer();
     }
-  }, 10);
+  }, 500);
 }
 
 function clearCanvas() {
