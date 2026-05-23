@@ -23,7 +23,7 @@ function getRandomIntInclusive(min, max) {
 let instructionNumber = getRandomIntInclusive(15,20);
 let templateWings = document.querySelector("#template-wings");
 let instructions = document.querySelector("#instructions");
-if (instructions) instructions.innerHTML = "Connect at least <b>" + instructionNumber + "</b> spots to continue.";
+if (instructions) instructions.innerHTML = "Connect <b>" + instructionNumber + "</b> spots to continue.";
 if (templateWings) templateWings.src = "./images/flies/fly" + getRandomIntInclusive(0, 299) + ".jpg";
 function ditherFloydSteinberg(pg) {
   pg.loadPixels();
@@ -268,11 +268,20 @@ function touchMoved() {
 
 function handlePointer(x, y, isDrag = false) {
   if (!inCanvasBounds(x, y)) return;
-
-  const star = new Star(x, y);
+  if(clickCounter == instructionNumber){
+    return;
+  }
   clickCounter += 1;
-  if(clickCounter > instructionNumber){
+  let star;
+  if(clickCounter <= instructionNumber){
+     star = new Star(x, y);
+     if (instructions) instructions.innerHTML = "Connect <b>" + (instructionNumber - clickCounter) + "</b> spots to continue.";
+
+  }
+  
+  if(clickCounter == instructionNumber){
     templateWings.style.display = "none";
+    return
   }
   const closest = getClosestStar(x, y);
   if (closest && closest.distance < CONNECT_DISTANCE * (isDrag ? 1 : SCALE)) {
