@@ -247,7 +247,7 @@ button:active {
     border: 1px solid rgb(236, 236, 236);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
     #app {
         flex-direction: column;
     }
