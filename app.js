@@ -1,12 +1,16 @@
 const SIZE = 256;
-const DISPLAY_SIZE = window.innerWidth < window.innerHeight ? window.innerWidth : window.innerHeight;
 const SCALE = 4;
+const CONNECT_DISTANCE = 60;
+const TRANSFER_INTERVAL_MS = 500;
+const STAR_COLOR = [236, 223, 172, 255];
+
 let modelCanvas;
 let mainCanvas;
-let statusMsg, clearBtn;
+let statusMsg;
+let clearBtn;
+
 let ditheredResult = null;
 let stars = [];
-
 let isModelLoaded = false;
 let isTransferring = false;
 let pix2pix;
@@ -20,45 +24,54 @@ const BAYER_4x4 = [
 
 function ditherFloydSteinbergBW(pg) {
   pg.loadPixels();
-  let w = pg.width, h = pg.height;
+  const w = pg.width;
+  const h = pg.height;
 
-  let gray = new Float32Array(w * h);
-  for (let i = 0; i < w * h; i++) {
-    let r = pg.pixels[i * 4];
-    let g = pg.pixels[i * 4 + 1];
-    let b = pg.pixels[i * 4 + 2];
+  const gray = new Float32Array(w * h);
+  for (let i = 0; i < w * h; i += 1) {
+    const offset = i * 4;
+    const r = pg.pixels[offset];
+    const g = pg.pixels[offset + 1];
+    const b = pg.pixels[offset + 2];
     gray[i] = 0.299 * r + 0.587 * g + 0.114 * b;
   }
 
-  for (let i = 0; i < w * h; i++) {
-    let v = gray[i] / 255;
+  for (let i = 0; i < gray.length; i += 1) {
+    const v = gray[i] / 255;
     gray[i] = Math.pow(v, 2.8) * 200;
   }
 
-  function clamp(val) { return Math.min(255, Math.max(0, val)); }
+  const clamp = value => Math.min(255, Math.max(0, value));
 
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      let i = y * w + x;
-      let oldVal = gray[i];
-      let newVal = oldVal < 100 ? 0 : 150;
-      gray[i] = newVal;
-      let err = oldVal - newVal;
+  for (let y = 0; y < h; y += 1) {
+    for (let x = 0; x < w; x += 1) {
+      const idx = y * w + x;
+      const oldVal = gray[idx];
+      const newVal = oldVal < 100 ? 0 : 150;
+      gray[idx] = newVal;
+      const err = oldVal - newVal;
 
-      if (x + 1 < w)        gray[i + 1]     = clamp(gray[i + 1]     + err * 7 / 16);
+      if (x + 1 < w) {
+        gray[idx + 1] = clamp(gray[idx + 1] + err * 7 / 16);
+      }
       if (y + 1 < h) {
-        if (x - 1 >= 0)      gray[i + w - 1] = clamp(gray[i + w - 1] + err * 3 / 16);
-                              gray[i + w]     = clamp(gray[i + w]     + err * 5 / 16);
-        if (x + 1 < w)       gray[i + w + 1] = clamp(gray[i + w + 1] + err * 1 / 16);
+        if (x - 1 >= 0) {
+          gray[idx + w - 1] = clamp(gray[idx + w - 1] + err * 3 / 16);
+        }
+        gray[idx + w] = clamp(gray[idx + w] + err * 5 / 16);
+        if (x + 1 < w) {
+          gray[idx + w + 1] = clamp(gray[idx + w + 1] + err * 1 / 16);
+        }
       }
     }
   }
 
-  for (let i = 0; i < w * h; i++) {
-    pg.pixels[i * 4]     = gray[i];
-    pg.pixels[i * 4 + 1] = gray[i];
-    pg.pixels[i * 4 + 2] = gray[i];
-    pg.pixels[i * 4 + 3] = 255;
+  for (let i = 0; i < gray.length; i += 1) {
+    const offset = i * 4;
+    pg.pixels[offset] = gray[i];
+    pg.pixels[offset + 1] = gray[i];
+    pg.pixels[offset + 2] = gray[i];
+    pg.pixels[offset + 3] = 255;
   }
 
   pg.updatePixels();
@@ -75,111 +88,136 @@ function setup() {
   background(0);
 
   statusMsg = select('#status');
-
   clearBtn = select('#clearBtn');
-  clearBtn.mousePressed(function () {
-    stars = [];
-    ditheredResult = null;
-    background(0);
-  });
+  clearBtn.mousePressed(clearCanvas);
+
+
 
   pix2pix = ml5.pix2pix('./model/flies.pict', modelLoaded);
 }
 
 function draw() {
-  // background(0);
   clear();
+  updateStars();
+  drawResult();
+  drawConnections();
+  drawStars();
+  updateModelCanvas();
+}
 
-  // Draw dithered pix2pix result if available
+function clearCanvas() {
+  stars = [];
+  ditheredResult = null;
+  background(0);
+}
+
+function drawResult() {
   if (ditheredResult) {
     image(ditheredResult, 0, 0, SIZE * SCALE, SIZE * SCALE);
   }
+}
 
-  // Update stars and draw connection lines
-  for (let i = 0; i < stars.length; i++) {
-    stars[i].update();
-    for (let j = 0; j < stars[i].connections.length; j++) {
-      let neighbor = stars[i].connections[j];
-      stroke(236, 223, 172, 255);
-      strokeWeight(1);
-      line(stars[i].x, stars[i].y, neighbor.x, neighbor.y);
-    }
-  }
+function drawConnections() {
+  stroke(...STAR_COLOR);
+  strokeWeight(1);
 
-  // Draw star glyphs
-  for (let i = 0; i < stars.length; i++) {
-    noStroke();
-    fill(236, 223, 172, 255);
-    textSize(20);
-    textAlign(CENTER);
-    text("✷", stars[i].x, stars[i].y + 10);
-  }
+  stars.forEach(star => {
+    star.connections.forEach(neighbor => {
+      line(star.x, star.y, neighbor.x, neighbor.y);
+    });
+  });
+}
 
-  // Update modelCanvas (clean input for pix2pix)
+function drawStars() {
+  noStroke();
+  fill(...STAR_COLOR);
+  textSize(20);
+  textAlign(CENTER, CENTER);
+
+  stars.forEach(star => {
+    text('✷', star.x, star.y);
+  });
+}
+
+function updateModelCanvas() {
   modelCanvas.background(0);
-  for (let i = 0; i < stars.length; i++) {
-    modelCanvas.noStroke();
-    modelCanvas.fill(255);
-    modelCanvas.ellipse(stars[i].x / SCALE, stars[i].y / SCALE, stars[i].radius, stars[i].radius);
-  }
+  modelCanvas.noStroke();
+  modelCanvas.fill(255);
+
+  stars.forEach(star => {
+    modelCanvas.ellipse(
+      star.x / SCALE,
+      star.y / SCALE,
+      star.radius,
+      star.radius
+    );
+  });
 }
 
 function mousePressed() {
-  if (mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height) {
-    let newStar = new Star(mouseX, mouseY);
-
-    let closestStar = null;
-    let recordDist = Infinity;
-    for (let i = 0; i < stars.length; i++) {
-      let d = dist(mouseX, mouseY, stars[i].originX, stars[i].originY);
-      if (d < recordDist) {
-        recordDist = d;
-        closestStar = stars[i];
-      }
-    }
-
-    if (closestStar && recordDist < 60 * SCALE) {
-      newStar.connections.push(closestStar);
-    }
-
-    stars.push(newStar);
-  }
+  handlePointer(mouseX, mouseY);
 }
 
 function mouseDragged() {
-  if (mouseX >= 0 && mouseX <= width && mouseY >= 0 && mouseY <= height) {
-    if (stars.length === 0 || dist(mouseX, mouseY, stars[stars.length - 1].originX, stars[stars.length - 1].originY) > 25) {
-      let newStar = new Star(mouseX, mouseY);
+  if (!inCanvasBounds(mouseX, mouseY)) return;
 
-      if (stars.length > 0) {
-        let prevStar = stars[stars.length - 1];
-        let d = dist(newStar.originX, newStar.originY, prevStar.originX, prevStar.originY);
-        if (d < 60) {
-          newStar.connections.push(prevStar);
-        }
-      }
-
-      stars.push(newStar);
-    }
+  const lastStar = stars[stars.length - 1];
+  if (!lastStar || dist(mouseX, mouseY, lastStar.originX, lastStar.originY) > 25) {
+    handlePointer(mouseX, mouseY);
   }
 }
 
 function touchStarted() {
   if (touches.length > 0) {
-    mouseX = touches[0].x;
-    mouseY = touches[0].y;
-    mousePressed();
+    handlePointer(touches[0].x, touches[0].y);
   }
   return false;
 }
 
 function touchMoved() {
   if (touches.length > 0) {
-    mouseX = touches[0].x;
-    mouseY = touches[0].y;
-    mouseDragged();
+    handlePointer(touches[0].x, touches[0].y, true);
   }
   return false;
+}
+
+function handlePointer(x, y, isDrag = false) {
+  if (!inCanvasBounds(x, y)) return;
+
+  const star = new Star(x, y);
+
+  const closest = getClosestStar(x, y);
+  if (closest && closest.distance < CONNECT_DISTANCE * (isDrag ? 1 : SCALE)) {
+    star.connections.push(closest.star);
+  }
+
+  if (isDrag && stars.length > 0) {
+    const prevStar = stars[stars.length - 1];
+    if (dist(star.originX, star.originY, prevStar.originX, prevStar.originY) < CONNECT_DISTANCE) {
+      star.connections.push(prevStar);
+    }
+  }
+
+  stars.push(star);
+}
+
+function inCanvasBounds(x, y) {
+  return x >= 0 && x <= width && y >= 0 && y <= height;
+}
+
+function getClosestStar(x, y) {
+  let closestStar = null;
+  let recordDist = Infinity;
+
+  stars.forEach(star => {
+    const d = dist(x, y, star.originX, star.originY);
+    if (d < recordDist) {
+      recordDist = d;
+      closestStar = star;
+    }
+  });
+
+  return closestStar ? { star: closestStar, distance: recordDist } : null;
 }
 
 class Star {
@@ -188,11 +226,11 @@ class Star {
     this.originY = y;
     this.noiseOffsetX = random(0, 1000);
     this.noiseOffsetY = random(1000, 2000);
-    // this.noiseOffsetX = 0;
-    // this.noiseOffsetY = 0;
     this.radius = 5;
     this.driftRange = 10;
     this.connections = [];
+    this.x = x;
+    this.y = y;
   }
 
   update() {
@@ -211,14 +249,14 @@ function modelLoaded() {
     if (isModelLoaded && !isTransferring && stars.length > 0) {
       transfer();
     }
-  }, 500);
+  }, TRANSFER_INTERVAL_MS);
 }
 
 function transfer() {
   isTransferring = true;
   statusMsg.html('Transferring...');
 
-  pix2pix.transfer(modelCanvas.elt, function (err, result) {
+  pix2pix.transfer(modelCanvas.elt, (err, result) => {
     isTransferring = false;
 
     if (err) {
@@ -227,10 +265,10 @@ function transfer() {
       return;
     }
 
-    if (result && result.src) {
+    if (result?.src) {
       statusMsg.html('Done!');
-      loadImage(result.src, function (p5img) {
-        let tmp = createGraphics(SIZE * SCALE, SIZE * SCALE);
+      loadImage(result.src, p5img => {
+        const tmp = createGraphics(SIZE * SCALE, SIZE * SCALE);
         tmp.pixelDensity(1);
         tmp.image(p5img, 0, 0, SIZE * SCALE, SIZE * SCALE);
         ditherFloydSteinbergBW(tmp);
@@ -238,4 +276,22 @@ function transfer() {
       });
     }
   });
+}
+
+function updateStars() {
+  stars.forEach(star => star.update());
+}
+
+function downloadCanvasAsImage() {
+  if (!ditheredResult) {
+    statusMsg.html('No image available to download.');
+    return;
+  }
+  saveCanvas(ditheredResult, 'microcosmos', 'png');
+}
+
+function keyPressed() {
+  if (key === 's' || key === 'S') {
+    downloadCanvasAsImage();
+  }
 }
