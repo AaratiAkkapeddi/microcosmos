@@ -267,8 +267,13 @@ button:active {
         top:20px;
         font-size: 17px;
     }
+    #close-btn{
+        top:0;
+        font-size: 40px;
+    }
     #light-box{
         bottom:0;
+        width: calc(100% - 40px);
         padding: 20px;
         top:auto;
         max-width: 100%;
