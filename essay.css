@@ -29,6 +29,7 @@ blockquote p{
     margin-bottom:0;
 }
 blockquote{
+    border: dotted 1px rgba(238, 233, 212, 0.4);
     padding: var(--space);
 }
 h1{
@@ -49,9 +50,10 @@ img.small{
     max-width: 500px;
 }
 figcaption{
-    font-size: 0.8rem;
+    font-size: 1rem;
     text-align: center;
     margin-top: 4px;
+    max-width: 500px;
 }
 html,
 body {
@@ -176,4 +178,23 @@ section{
   flex-direction: column;
   align-content: center;
   align-items: center;
+  max-width: 100%;
+}
+
+
+@media (max-width: 800px) {
+    :root {
+        --bg: black;
+        --text: rgba(238, 233, 212, 0.7);
+        --button-hover-bg: white;
+        --button-hover-color: black;
+        --font-family: "Cormorant Semibold", serif;
+        --font-size-body: 17px;
+        --font-size-large: 20px;
+        --space: 15px;
+    }
+    main{
+        max-width: calc(100% - 40px);
+        padding: 0 10px;
+    }
 }
