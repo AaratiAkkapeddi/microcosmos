@@ -1,30 +1,35 @@
 const SIZE = 256;
 const SCALE = 4;
 const CONNECT_DISTANCE = 60;
-const TRANSFER_INTERVAL_MS = 200;
 const STAR_COLOR = [236, 223, 172, 255];
 
+// Instead of re-running pix2pix, we "fake" regeneration by jittering the
+// continuous-tone base image with a little noise and re-dithering it on
+// an interval. Same look as the old live transfer, none of the cost.
+const REGEN_INTERVAL_FRAMES = 12; // ~200ms at 60fps, matching the old TRANSFER_INTERVAL_MS
+const REGEN_NOISE_AMOUNT = 18;    // how much brightness jitter to add before re-dithering
+
 const STAR_TEXTS = [
-  "<img id='light-box-image' src='./images/test.png'><p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>",
-  "The sections of De finibus bonorum et malorum from which Lorem ipsum ultimately derives is one in which Cicero promotes obtaining pleasure rationally instead of impulsively, in his home city of Cumae between himself and Lucius Manlius Torquatus, a young Epicurean, while another young Roman, Gaius Valerius Triarius, listens on. The relevant sections as printed in the source is reproduced below with fragments used in Lorem ipsum underlined. Letters in brackets were added to Lorem ipsum and were not present in the source text: ",
-  "Text for star 2",
-  "Text for star 3",
-  "Text for star 4",
-    "Text for star 0",
-  "Text for star 1",
-  "Text for star 2",
-  "Text for star 3",
-  "Text for star 4",
-    "Text for star 0",
-  "Text for star 1",
-  "Text for star 2",
-  "Text for star 3",
-  "Text for star 4",
-    "Text for star 0",
-  "Text for star 1",
-  "Text for star 2",
-  "Text for star 3",
-  "Text for star 4",
+  "<img id='light-box-image' src='./images/test.png'><p>Ailanthus Altissima (a.k.a 臭椿, Tree of Heaven, Ghetto Palm, Stink Tree) is the preferred host species for the Spotted Lanternfly.  It was first brought to the United Kingdom from China in the 1740s as a failed attempt to establish silk production and then later introduced to the United States in 1784 as an ornamental. In China, Tree of Heaven is mentioned in the 本草 or Materia Medica for having curative and astringent properties. Tree of Heaven is considered invasive and has a storied cultural history in NYC, for example, as the primary metaphor in Betty Smith's 1943 novel, <em>A Tree Grows in Brooklyn.</em></p><ul><li>Battles, Matthew. 'Of Silk and Invasion.' Arnold Arboretum, July 20, 2022. <a href='https://arboretum.harvard.edu/stories/of-silk-and-invasion/'>https://arboretum.harvard.edu/stories/of-silk-and-invasion/</a></li><li>Hu, Shiu Ying. ;'Ailanthus.' Arnoldia 39, no. 2 (March/April 1979): 29–50. <a href='https://www.jstor.org/stable/42954660'>https://www.jstor.org/stable/42954660.</a></li><li>Smith, Betty. A Tree Grows in Brooklyn. New York: Harper & Brothers, 1943.</li><li>Tang Shenwei (唐慎微). <em>Chong xiu Zhenghe jing shi zheng lei bei yong ben cao</em> (重修政和經史證類備用本草). 1249. Internet Archive, p. 637. <a href='https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up?q=%E6%A8%97'>https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up</a></li></ul>",
+  "<img id='light-box-image' src='./images/test.png'><p>Ailanthus Altissima (a.k.a 臭椿, Tree of Heaven, Ghetto Palm, Stink Tree) is the preferred host species for the Spotted Lanternfly.  It was first brought to the United Kingdom from China in the 1740s as a failed attempt to establish silk production and then later introduced to the United States in 1784 as an ornamental. In China, Tree of Heaven is mentioned in the 本草 or Materia Medica for having curative and astringent properties. Tree of Heaven is considered invasive and has a storied cultural history in NYC, for example, as the primary metaphor in Betty Smith's 1943 novel, <em>A Tree Grows in Brooklyn.</em></p><ul><li>Battles, Matthew. 'Of Silk and Invasion.' Arnold Arboretum, July 20, 2022. <a href='https://arboretum.harvard.edu/stories/of-silk-and-invasion/'>https://arboretum.harvard.edu/stories/of-silk-and-invasion/</a></li><li>Hu, Shiu Ying. ;'Ailanthus.' Arnoldia 39, no. 2 (March/April 1979): 29–50. <a href='https://www.jstor.org/stable/42954660'>https://www.jstor.org/stable/42954660.</a></li><li>Smith, Betty. A Tree Grows in Brooklyn. New York: Harper & Brothers, 1943.</li><li>Tang Shenwei (唐慎微). <em>Chong xiu Zhenghe jing shi zheng lei bei yong ben cao</em> (重修政和經史證類備用本草). 1249. Internet Archive, p. 637. <a href='https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up?q=%E6%A8%97'>https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up</a></li></ul>",
+  "<img id='light-box-image' src='./images/test.png'><p>Ailanthus Altissima (a.k.a 臭椿, Tree of Heaven, Ghetto Palm, Stink Tree) is the preferred host species for the Spotted Lanternfly.  It was first brought to the United Kingdom from China in the 1740s as a failed attempt to establish silk production and then later introduced to the United States in 1784 as an ornamental. In China, Tree of Heaven is mentioned in the 本草 or Materia Medica for having curative and astringent properties. Tree of Heaven is considered invasive and has a storied cultural history in NYC, for example, as the primary metaphor in Betty Smith's 1943 novel, <em>A Tree Grows in Brooklyn.</em></p><ul><li>Battles, Matthew. 'Of Silk and Invasion.' Arnold Arboretum, July 20, 2022. <a href='https://arboretum.harvard.edu/stories/of-silk-and-invasion/'>https://arboretum.harvard.edu/stories/of-silk-and-invasion/</a></li><li>Hu, Shiu Ying. ;'Ailanthus.' Arnoldia 39, no. 2 (March/April 1979): 29–50. <a href='https://www.jstor.org/stable/42954660'>https://www.jstor.org/stable/42954660.</a></li><li>Smith, Betty. A Tree Grows in Brooklyn. New York: Harper & Brothers, 1943.</li><li>Tang Shenwei (唐慎微). <em>Chong xiu Zhenghe jing shi zheng lei bei yong ben cao</em> (重修政和經史證類備用本草). 1249. Internet Archive, p. 637. <a href='https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up?q=%E6%A8%97'>https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up</a></li></ul>",
+  "<img id='light-box-image' src='./images/test.png'><p>Ailanthus Altissima (a.k.a 臭椿, Tree of Heaven, Ghetto Palm, Stink Tree) is the preferred host species for the Spotted Lanternfly.  It was first brought to the United Kingdom from China in the 1740s as a failed attempt to establish silk production and then later introduced to the United States in 1784 as an ornamental. In China, Tree of Heaven is mentioned in the 本草 or Materia Medica for having curative and astringent properties. Tree of Heaven is considered invasive and has a storied cultural history in NYC, for example, as the primary metaphor in Betty Smith's 1943 novel, <em>A Tree Grows in Brooklyn.</em></p><ul><li>Battles, Matthew. 'Of Silk and Invasion.' Arnold Arboretum, July 20, 2022. <a href='https://arboretum.harvard.edu/stories/of-silk-and-invasion/'>https://arboretum.harvard.edu/stories/of-silk-and-invasion/</a></li><li>Hu, Shiu Ying. ;'Ailanthus.' Arnoldia 39, no. 2 (March/April 1979): 29–50. <a href='https://www.jstor.org/stable/42954660'>https://www.jstor.org/stable/42954660.</a></li><li>Smith, Betty. A Tree Grows in Brooklyn. New York: Harper & Brothers, 1943.</li><li>Tang Shenwei (唐慎微). <em>Chong xiu Zhenghe jing shi zheng lei bei yong ben cao</em> (重修政和經史證類備用本草). 1249. Internet Archive, p. 637. <a href='https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up?q=%E6%A8%97'>https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up</a></li></ul>",
+  "<img id='light-box-image' src='./images/test.png'><p>Ailanthus Altissima (a.k.a 臭椿, Tree of Heaven, Ghetto Palm, Stink Tree) is the preferred host species for the Spotted Lanternfly.  It was first brought to the United Kingdom from China in the 1740s as a failed attempt to establish silk production and then later introduced to the United States in 1784 as an ornamental. In China, Tree of Heaven is mentioned in the 本草 or Materia Medica for having curative and astringent properties. Tree of Heaven is considered invasive and has a storied cultural history in NYC, for example, as the primary metaphor in Betty Smith's 1943 novel, <em>A Tree Grows in Brooklyn.</em></p><ul><li>Battles, Matthew. 'Of Silk and Invasion.' Arnold Arboretum, July 20, 2022. <a href='https://arboretum.harvard.edu/stories/of-silk-and-invasion/'>https://arboretum.harvard.edu/stories/of-silk-and-invasion/</a></li><li>Hu, Shiu Ying. ;'Ailanthus.' Arnoldia 39, no. 2 (March/April 1979): 29–50. <a href='https://www.jstor.org/stable/42954660'>https://www.jstor.org/stable/42954660.</a></li><li>Smith, Betty. A Tree Grows in Brooklyn. New York: Harper & Brothers, 1943.</li><li>Tang Shenwei (唐慎微). <em>Chong xiu Zhenghe jing shi zheng lei bei yong ben cao</em> (重修政和經史證類備用本草). 1249. Internet Archive, p. 637. <a href='https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up?q=%E6%A8%97'>https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up</a></li></ul>",
+    "<img id='light-box-image' src='./images/test.png'><p>Ailanthus Altissima (a.k.a 臭椿, Tree of Heaven, Ghetto Palm, Stink Tree) is the preferred host species for the Spotted Lanternfly.  It was first brought to the United Kingdom from China in the 1740s as a failed attempt to establish silk production and then later introduced to the United States in 1784 as an ornamental. In China, Tree of Heaven is mentioned in the 本草 or Materia Medica for having curative and astringent properties. Tree of Heaven is considered invasive and has a storied cultural history in NYC, for example, as the primary metaphor in Betty Smith's 1943 novel, <em>A Tree Grows in Brooklyn.</em></p><ul><li>Battles, Matthew. 'Of Silk and Invasion.' Arnold Arboretum, July 20, 2022. <a href='https://arboretum.harvard.edu/stories/of-silk-and-invasion/'>https://arboretum.harvard.edu/stories/of-silk-and-invasion/</a></li><li>Hu, Shiu Ying. ;'Ailanthus.' Arnoldia 39, no. 2 (March/April 1979): 29–50. <a href='https://www.jstor.org/stable/42954660'>https://www.jstor.org/stable/42954660.</a></li><li>Smith, Betty. A Tree Grows in Brooklyn. New York: Harper & Brothers, 1943.</li><li>Tang Shenwei (唐慎微). <em>Chong xiu Zhenghe jing shi zheng lei bei yong ben cao</em> (重修政和經史證類備用本草). 1249. Internet Archive, p. 637. <a href='https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up?q=%E6%A8%97'>https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up</a></li></ul>",
+  "<img id='light-box-image' src='./images/test.png'><p>Ailanthus Altissima (a.k.a 臭椿, Tree of Heaven, Ghetto Palm, Stink Tree) is the preferred host species for the Spotted Lanternfly.  It was first brought to the United Kingdom from China in the 1740s as a failed attempt to establish silk production and then later introduced to the United States in 1784 as an ornamental. In China, Tree of Heaven is mentioned in the 本草 or Materia Medica for having curative and astringent properties. Tree of Heaven is considered invasive and has a storied cultural history in NYC, for example, as the primary metaphor in Betty Smith's 1943 novel, <em>A Tree Grows in Brooklyn.</em></p><ul><li>Battles, Matthew. 'Of Silk and Invasion.' Arnold Arboretum, July 20, 2022. <a href='https://arboretum.harvard.edu/stories/of-silk-and-invasion/'>https://arboretum.harvard.edu/stories/of-silk-and-invasion/</a></li><li>Hu, Shiu Ying. ;'Ailanthus.' Arnoldia 39, no. 2 (March/April 1979): 29–50. <a href='https://www.jstor.org/stable/42954660'>https://www.jstor.org/stable/42954660.</a></li><li>Smith, Betty. A Tree Grows in Brooklyn. New York: Harper & Brothers, 1943.</li><li>Tang Shenwei (唐慎微). <em>Chong xiu Zhenghe jing shi zheng lei bei yong ben cao</em> (重修政和經史證類備用本草). 1249. Internet Archive, p. 637. <a href='https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up?q=%E6%A8%97'>https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up</a></li></ul>",
+  "<img id='light-box-image' src='./images/test.png'><p>Ailanthus Altissima (a.k.a 臭椿, Tree of Heaven, Ghetto Palm, Stink Tree) is the preferred host species for the Spotted Lanternfly.  It was first brought to the United Kingdom from China in the 1740s as a failed attempt to establish silk production and then later introduced to the United States in 1784 as an ornamental. In China, Tree of Heaven is mentioned in the 本草 or Materia Medica for having curative and astringent properties. Tree of Heaven is considered invasive and has a storied cultural history in NYC, for example, as the primary metaphor in Betty Smith's 1943 novel, <em>A Tree Grows in Brooklyn.</em></p><ul><li>Battles, Matthew. 'Of Silk and Invasion.' Arnold Arboretum, July 20, 2022. <a href='https://arboretum.harvard.edu/stories/of-silk-and-invasion/'>https://arboretum.harvard.edu/stories/of-silk-and-invasion/</a></li><li>Hu, Shiu Ying. ;'Ailanthus.' Arnoldia 39, no. 2 (March/April 1979): 29–50. <a href='https://www.jstor.org/stable/42954660'>https://www.jstor.org/stable/42954660.</a></li><li>Smith, Betty. A Tree Grows in Brooklyn. New York: Harper & Brothers, 1943.</li><li>Tang Shenwei (唐慎微). <em>Chong xiu Zhenghe jing shi zheng lei bei yong ben cao</em> (重修政和經史證類備用本草). 1249. Internet Archive, p. 637. <a href='https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up?q=%E6%A8%97'>https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up</a></li></ul>",
+  "<img id='light-box-image' src='./images/test.png'><p>Ailanthus Altissima (a.k.a 臭椿, Tree of Heaven, Ghetto Palm, Stink Tree) is the preferred host species for the Spotted Lanternfly.  It was first brought to the United Kingdom from China in the 1740s as a failed attempt to establish silk production and then later introduced to the United States in 1784 as an ornamental. In China, Tree of Heaven is mentioned in the 本草 or Materia Medica for having curative and astringent properties. Tree of Heaven is considered invasive and has a storied cultural history in NYC, for example, as the primary metaphor in Betty Smith's 1943 novel, <em>A Tree Grows in Brooklyn.</em></p><ul><li>Battles, Matthew. 'Of Silk and Invasion.' Arnold Arboretum, July 20, 2022. <a href='https://arboretum.harvard.edu/stories/of-silk-and-invasion/'>https://arboretum.harvard.edu/stories/of-silk-and-invasion/</a></li><li>Hu, Shiu Ying. ;'Ailanthus.' Arnoldia 39, no. 2 (March/April 1979): 29–50. <a href='https://www.jstor.org/stable/42954660'>https://www.jstor.org/stable/42954660.</a></li><li>Smith, Betty. A Tree Grows in Brooklyn. New York: Harper & Brothers, 1943.</li><li>Tang Shenwei (唐慎微). <em>Chong xiu Zhenghe jing shi zheng lei bei yong ben cao</em> (重修政和經史證類備用本草). 1249. Internet Archive, p. 637. <a href='https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up?q=%E6%A8%97'>https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up</a></li></ul>",
+  "<img id='light-box-image' src='./images/test.png'><p>Ailanthus Altissima (a.k.a 臭椿, Tree of Heaven, Ghetto Palm, Stink Tree) is the preferred host species for the Spotted Lanternfly.  It was first brought to the United Kingdom from China in the 1740s as a failed attempt to establish silk production and then later introduced to the United States in 1784 as an ornamental. In China, Tree of Heaven is mentioned in the 本草 or Materia Medica for having curative and astringent properties. Tree of Heaven is considered invasive and has a storied cultural history in NYC, for example, as the primary metaphor in Betty Smith's 1943 novel, <em>A Tree Grows in Brooklyn.</em></p><ul><li>Battles, Matthew. 'Of Silk and Invasion.' Arnold Arboretum, July 20, 2022. <a href='https://arboretum.harvard.edu/stories/of-silk-and-invasion/'>https://arboretum.harvard.edu/stories/of-silk-and-invasion/</a></li><li>Hu, Shiu Ying. ;'Ailanthus.' Arnoldia 39, no. 2 (March/April 1979): 29–50. <a href='https://www.jstor.org/stable/42954660'>https://www.jstor.org/stable/42954660.</a></li><li>Smith, Betty. A Tree Grows in Brooklyn. New York: Harper & Brothers, 1943.</li><li>Tang Shenwei (唐慎微). <em>Chong xiu Zhenghe jing shi zheng lei bei yong ben cao</em> (重修政和經史證類備用本草). 1249. Internet Archive, p. 637. <a href='https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up?q=%E6%A8%97'>https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up</a></li></ul>",
+    "<img id='light-box-image' src='./images/test.png'><p>Ailanthus Altissima (a.k.a 臭椿, Tree of Heaven, Ghetto Palm, Stink Tree) is the preferred host species for the Spotted Lanternfly.  It was first brought to the United Kingdom from China in the 1740s as a failed attempt to establish silk production and then later introduced to the United States in 1784 as an ornamental. In China, Tree of Heaven is mentioned in the 本草 or Materia Medica for having curative and astringent properties. Tree of Heaven is considered invasive and has a storied cultural history in NYC, for example, as the primary metaphor in Betty Smith's 1943 novel, <em>A Tree Grows in Brooklyn.</em></p><ul><li>Battles, Matthew. 'Of Silk and Invasion.' Arnold Arboretum, July 20, 2022. <a href='https://arboretum.harvard.edu/stories/of-silk-and-invasion/'>https://arboretum.harvard.edu/stories/of-silk-and-invasion/</a></li><li>Hu, Shiu Ying. ;'Ailanthus.' Arnoldia 39, no. 2 (March/April 1979): 29–50. <a href='https://www.jstor.org/stable/42954660'>https://www.jstor.org/stable/42954660.</a></li><li>Smith, Betty. A Tree Grows in Brooklyn. New York: Harper & Brothers, 1943.</li><li>Tang Shenwei (唐慎微). <em>Chong xiu Zhenghe jing shi zheng lei bei yong ben cao</em> (重修政和經史證類備用本草). 1249. Internet Archive, p. 637. <a href='https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up?q=%E6%A8%97'>https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up</a></li></ul>",
+  "<img id='light-box-image' src='./images/test.png'><p>Ailanthus Altissima (a.k.a 臭椿, Tree of Heaven, Ghetto Palm, Stink Tree) is the preferred host species for the Spotted Lanternfly.  It was first brought to the United Kingdom from China in the 1740s as a failed attempt to establish silk production and then later introduced to the United States in 1784 as an ornamental. In China, Tree of Heaven is mentioned in the 本草 or Materia Medica for having curative and astringent properties. Tree of Heaven is considered invasive and has a storied cultural history in NYC, for example, as the primary metaphor in Betty Smith's 1943 novel, <em>A Tree Grows in Brooklyn.</em></p><ul><li>Battles, Matthew. 'Of Silk and Invasion.' Arnold Arboretum, July 20, 2022. <a href='https://arboretum.harvard.edu/stories/of-silk-and-invasion/'>https://arboretum.harvard.edu/stories/of-silk-and-invasion/</a></li><li>Hu, Shiu Ying. ;'Ailanthus.' Arnoldia 39, no. 2 (March/April 1979): 29–50. <a href='https://www.jstor.org/stable/42954660'>https://www.jstor.org/stable/42954660.</a></li><li>Smith, Betty. A Tree Grows in Brooklyn. New York: Harper & Brothers, 1943.</li><li>Tang Shenwei (唐慎微). <em>Chong xiu Zhenghe jing shi zheng lei bei yong ben cao</em> (重修政和經史證類備用本草). 1249. Internet Archive, p. 637. <a href='https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up?q=%E6%A8%97'>https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up</a></li></ul>",
+  "<img id='light-box-image' src='./images/test.png'><p>Ailanthus Altissima (a.k.a 臭椿, Tree of Heaven, Ghetto Palm, Stink Tree) is the preferred host species for the Spotted Lanternfly.  It was first brought to the United Kingdom from China in the 1740s as a failed attempt to establish silk production and then later introduced to the United States in 1784 as an ornamental. In China, Tree of Heaven is mentioned in the 本草 or Materia Medica for having curative and astringent properties. Tree of Heaven is considered invasive and has a storied cultural history in NYC, for example, as the primary metaphor in Betty Smith's 1943 novel, <em>A Tree Grows in Brooklyn.</em></p><ul><li>Battles, Matthew. 'Of Silk and Invasion.' Arnold Arboretum, July 20, 2022. <a href='https://arboretum.harvard.edu/stories/of-silk-and-invasion/'>https://arboretum.harvard.edu/stories/of-silk-and-invasion/</a></li><li>Hu, Shiu Ying. ;'Ailanthus.' Arnoldia 39, no. 2 (March/April 1979): 29–50. <a href='https://www.jstor.org/stable/42954660'>https://www.jstor.org/stable/42954660.</a></li><li>Smith, Betty. A Tree Grows in Brooklyn. New York: Harper & Brothers, 1943.</li><li>Tang Shenwei (唐慎微). <em>Chong xiu Zhenghe jing shi zheng lei bei yong ben cao</em> (重修政和經史證類備用本草). 1249. Internet Archive, p. 637. <a href='https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up?q=%E6%A8%97'>https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up</a></li></ul>",
+  "<img id='light-box-image' src='./images/test.png'><p>Ailanthus Altissima (a.k.a 臭椿, Tree of Heaven, Ghetto Palm, Stink Tree) is the preferred host species for the Spotted Lanternfly.  It was first brought to the United Kingdom from China in the 1740s as a failed attempt to establish silk production and then later introduced to the United States in 1784 as an ornamental. In China, Tree of Heaven is mentioned in the 本草 or Materia Medica for having curative and astringent properties. Tree of Heaven is considered invasive and has a storied cultural history in NYC, for example, as the primary metaphor in Betty Smith's 1943 novel, <em>A Tree Grows in Brooklyn.</em></p><ul><li>Battles, Matthew. 'Of Silk and Invasion.' Arnold Arboretum, July 20, 2022. <a href='https://arboretum.harvard.edu/stories/of-silk-and-invasion/'>https://arboretum.harvard.edu/stories/of-silk-and-invasion/</a></li><li>Hu, Shiu Ying. ;'Ailanthus.' Arnoldia 39, no. 2 (March/April 1979): 29–50. <a href='https://www.jstor.org/stable/42954660'>https://www.jstor.org/stable/42954660.</a></li><li>Smith, Betty. A Tree Grows in Brooklyn. New York: Harper & Brothers, 1943.</li><li>Tang Shenwei (唐慎微). <em>Chong xiu Zhenghe jing shi zheng lei bei yong ben cao</em> (重修政和經史證類備用本草). 1249. Internet Archive, p. 637. <a href='https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up?q=%E6%A8%97'>https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up</a></li></ul>",
+  "<img id='light-box-image' src='./images/test.png'><p>Ailanthus Altissima (a.k.a 臭椿, Tree of Heaven, Ghetto Palm, Stink Tree) is the preferred host species for the Spotted Lanternfly.  It was first brought to the United Kingdom from China in the 1740s as a failed attempt to establish silk production and then later introduced to the United States in 1784 as an ornamental. In China, Tree of Heaven is mentioned in the 本草 or Materia Medica for having curative and astringent properties. Tree of Heaven is considered invasive and has a storied cultural history in NYC, for example, as the primary metaphor in Betty Smith's 1943 novel, <em>A Tree Grows in Brooklyn.</em></p><ul><li>Battles, Matthew. 'Of Silk and Invasion.' Arnold Arboretum, July 20, 2022. <a href='https://arboretum.harvard.edu/stories/of-silk-and-invasion/'>https://arboretum.harvard.edu/stories/of-silk-and-invasion/</a></li><li>Hu, Shiu Ying. ;'Ailanthus.' Arnoldia 39, no. 2 (March/April 1979): 29–50. <a href='https://www.jstor.org/stable/42954660'>https://www.jstor.org/stable/42954660.</a></li><li>Smith, Betty. A Tree Grows in Brooklyn. New York: Harper & Brothers, 1943.</li><li>Tang Shenwei (唐慎微). <em>Chong xiu Zhenghe jing shi zheng lei bei yong ben cao</em> (重修政和經史證類備用本草). 1249. Internet Archive, p. 637. <a href='https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up?q=%E6%A8%97'>https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up</a></li></ul>",
+    "<img id='light-box-image' src='./images/test.png'><p>Ailanthus Altissima (a.k.a 臭椿, Tree of Heaven, Ghetto Palm, Stink Tree) is the preferred host species for the Spotted Lanternfly.  It was first brought to the United Kingdom from China in the 1740s as a failed attempt to establish silk production and then later introduced to the United States in 1784 as an ornamental. In China, Tree of Heaven is mentioned in the 本草 or Materia Medica for having curative and astringent properties. Tree of Heaven is considered invasive and has a storied cultural history in NYC, for example, as the primary metaphor in Betty Smith's 1943 novel, <em>A Tree Grows in Brooklyn.</em></p><ul><li>Battles, Matthew. 'Of Silk and Invasion.' Arnold Arboretum, July 20, 2022. <a href='https://arboretum.harvard.edu/stories/of-silk-and-invasion/'>https://arboretum.harvard.edu/stories/of-silk-and-invasion/</a></li><li>Hu, Shiu Ying. ;'Ailanthus.' Arnoldia 39, no. 2 (March/April 1979): 29–50. <a href='https://www.jstor.org/stable/42954660'>https://www.jstor.org/stable/42954660.</a></li><li>Smith, Betty. A Tree Grows in Brooklyn. New York: Harper & Brothers, 1943.</li><li>Tang Shenwei (唐慎微). <em>Chong xiu Zhenghe jing shi zheng lei bei yong ben cao</em> (重修政和經史證類備用本草). 1249. Internet Archive, p. 637. <a href='https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up?q=%E6%A8%97'>https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up</a></li></ul>",
+  "<img id='light-box-image' src='./images/test.png'><p>Ailanthus Altissima (a.k.a 臭椿, Tree of Heaven, Ghetto Palm, Stink Tree) is the preferred host species for the Spotted Lanternfly.  It was first brought to the United Kingdom from China in the 1740s as a failed attempt to establish silk production and then later introduced to the United States in 1784 as an ornamental. In China, Tree of Heaven is mentioned in the 本草 or Materia Medica for having curative and astringent properties. Tree of Heaven is considered invasive and has a storied cultural history in NYC, for example, as the primary metaphor in Betty Smith's 1943 novel, <em>A Tree Grows in Brooklyn.</em></p><ul><li>Battles, Matthew. 'Of Silk and Invasion.' Arnold Arboretum, July 20, 2022. <a href='https://arboretum.harvard.edu/stories/of-silk-and-invasion/'>https://arboretum.harvard.edu/stories/of-silk-and-invasion/</a></li><li>Hu, Shiu Ying. ;'Ailanthus.' Arnoldia 39, no. 2 (March/April 1979): 29–50. <a href='https://www.jstor.org/stable/42954660'>https://www.jstor.org/stable/42954660.</a></li><li>Smith, Betty. A Tree Grows in Brooklyn. New York: Harper & Brothers, 1943.</li><li>Tang Shenwei (唐慎微). <em>Chong xiu Zhenghe jing shi zheng lei bei yong ben cao</em> (重修政和經史證類備用本草). 1249. Internet Archive, p. 637. <a href='https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up?q=%E6%A8%97'>https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up</a></li></ul>",
+  "<img id='light-box-image' src='./images/test.png'><p>Ailanthus Altissima (a.k.a 臭椿, Tree of Heaven, Ghetto Palm, Stink Tree) is the preferred host species for the Spotted Lanternfly.  It was first brought to the United Kingdom from China in the 1740s as a failed attempt to establish silk production and then later introduced to the United States in 1784 as an ornamental. In China, Tree of Heaven is mentioned in the 本草 or Materia Medica for having curative and astringent properties. Tree of Heaven is considered invasive and has a storied cultural history in NYC, for example, as the primary metaphor in Betty Smith's 1943 novel, <em>A Tree Grows in Brooklyn.</em></p><ul><li>Battles, Matthew. 'Of Silk and Invasion.' Arnold Arboretum, July 20, 2022. <a href='https://arboretum.harvard.edu/stories/of-silk-and-invasion/'>https://arboretum.harvard.edu/stories/of-silk-and-invasion/</a></li><li>Hu, Shiu Ying. ;'Ailanthus.' Arnoldia 39, no. 2 (March/April 1979): 29–50. <a href='https://www.jstor.org/stable/42954660'>https://www.jstor.org/stable/42954660.</a></li><li>Smith, Betty. A Tree Grows in Brooklyn. New York: Harper & Brothers, 1943.</li><li>Tang Shenwei (唐慎微). <em>Chong xiu Zhenghe jing shi zheng lei bei yong ben cao</em> (重修政和經史證類備用本草). 1249. Internet Archive, p. 637. <a href='https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up?q=%E6%A8%97'>https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up</a></li></ul>",
+  "<img id='light-box-image' src='./images/test.png'><p>Ailanthus Altissima (a.k.a 臭椿, Tree of Heaven, Ghetto Palm, Stink Tree) is the preferred host species for the Spotted Lanternfly.  It was first brought to the United Kingdom from China in the 1740s as a failed attempt to establish silk production and then later introduced to the United States in 1784 as an ornamental. In China, Tree of Heaven is mentioned in the 本草 or Materia Medica for having curative and astringent properties. Tree of Heaven is considered invasive and has a storied cultural history in NYC, for example, as the primary metaphor in Betty Smith's 1943 novel, <em>A Tree Grows in Brooklyn.</em></p><ul><li>Battles, Matthew. 'Of Silk and Invasion.' Arnold Arboretum, July 20, 2022. <a href='https://arboretum.harvard.edu/stories/of-silk-and-invasion/'>https://arboretum.harvard.edu/stories/of-silk-and-invasion/</a></li><li>Hu, Shiu Ying. ;'Ailanthus.' Arnoldia 39, no. 2 (March/April 1979): 29–50. <a href='https://www.jstor.org/stable/42954660'>https://www.jstor.org/stable/42954660.</a></li><li>Smith, Betty. A Tree Grows in Brooklyn. New York: Harper & Brothers, 1943.</li><li>Tang Shenwei (唐慎微). <em>Chong xiu Zhenghe jing shi zheng lei bei yong ben cao</em> (重修政和經史證類備用本草). 1249. Internet Archive, p. 637. <a href='https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up?q=%E6%A8%97'>https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up</a></li></ul>",
+  "<img id='light-box-image' src='./images/test.png'><p>Ailanthus Altissima (a.k.a 臭椿, Tree of Heaven, Ghetto Palm, Stink Tree) is the preferred host species for the Spotted Lanternfly.  It was first brought to the United Kingdom from China in the 1740s as a failed attempt to establish silk production and then later introduced to the United States in 1784 as an ornamental. In China, Tree of Heaven is mentioned in the 本草 or Materia Medica for having curative and astringent properties. Tree of Heaven is considered invasive and has a storied cultural history in NYC, for example, as the primary metaphor in Betty Smith's 1943 novel, <em>A Tree Grows in Brooklyn.</em></p><ul><li>Battles, Matthew. 'Of Silk and Invasion.' Arnold Arboretum, July 20, 2022. <a href='https://arboretum.harvard.edu/stories/of-silk-and-invasion/'>https://arboretum.harvard.edu/stories/of-silk-and-invasion/</a></li><li>Hu, Shiu Ying. ;'Ailanthus.' Arnoldia 39, no. 2 (March/April 1979): 29–50. <a href='https://www.jstor.org/stable/42954660'>https://www.jstor.org/stable/42954660.</a></li><li>Smith, Betty. A Tree Grows in Brooklyn. New York: Harper & Brothers, 1943.</li><li>Tang Shenwei (唐慎微). <em>Chong xiu Zhenghe jing shi zheng lei bei yong ben cao</em> (重修政和經史證類備用本草). 1249. Internet Archive, p. 637. <a href='https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up?q=%E6%A8%97'>https://archive.org/details/54053033-1-1299/54053033-1-1299/page/n636/mode/1up</a></li></ul>",
   // ...add more as needed
 ];
 
@@ -34,10 +39,13 @@ let statusMsg;
 let clearBtn;
 let clickCounter = 0;
 
-let ditheredResult = null;
+let baseFullRes = null;      // continuous-tone pix2pix output, captured once
+let ditheredResult = null;   // current dithered frame, re-generated on a timer from baseFullRes
 let stars = [];
 let isModelLoaded = false;
 let isTransferring = false;
+let hasTransferred = false;  // guards the one-time transfer
+let readyForTransfer = false; // set true the instant clickCounter hits instructionNumber
 let pix2pix;
 
 function getRandomIntInclusive(min, max) {
@@ -185,6 +193,37 @@ function ditherFloydSteinbergBW(pg) {
   pg.updatePixels();
 }
 
+// Nudges every pixel's brightness by a small random amount. Run this on a
+// copy of the base image right before dithering, and the resulting dither
+// pattern comes out looking freshly "regenerated" even though the model
+// never ran again.
+function jitterPixels(pg, amount) {
+  pg.loadPixels();
+  for (let i = 0; i < pg.pixels.length; i += 4) {
+    const n = (Math.random() * 2 - 1) * amount;
+    pg.pixels[i] = constrain(pg.pixels[i] + n, 0, 255);
+    pg.pixels[i + 1] = constrain(pg.pixels[i + 1] + n, 0, 255);
+    pg.pixels[i + 2] = constrain(pg.pixels[i + 2] + n, 0, 255);
+  }
+  pg.updatePixels();
+}
+
+// Builds a new dithered frame from the single captured base image. Cheap
+// enough to call every REGEN_INTERVAL_FRAMES frames — it's just noise +
+// the same dither pass the sketch already had, no ML involved.
+function regenerateDither() {
+  if (!baseFullRes) return;
+
+  const tmp = createGraphics(SIZE * SCALE, SIZE * SCALE);
+  tmp.pixelDensity(1);
+  tmp.image(baseFullRes, 0, 0);
+
+  jitterPixels(tmp, REGEN_NOISE_AMOUNT);
+  ditherFloydSteinbergBW(tmp);
+
+  ditheredResult = tmp;
+}
+
 function setup() {
   pixelDensity(1);
   mainCanvas = createCanvas(SIZE * SCALE, SIZE * SCALE);
@@ -223,9 +262,32 @@ function draw() {
   drawConnections();
   drawStars();
   updateModelCanvas();
-  if(clickCounter == 0){
+
+  if (clickCounter === 0) {
     ditheredResult = null;
+    baseFullRes = null;
+    hasTransferred = false;
+    readyForTransfer = false;
     background(0);
+  }
+
+  // Fire the transfer exactly once, the moment we're ready and the model
+  // is loaded. Everything after that is faked from the one result.
+  if (readyForTransfer && isModelLoaded && !hasTransferred && !isTransferring) {
+    hasTransferred = true;
+    transfer();
+  }
+
+  // Fake the "still regenerating" look on an interval, purely from noise +
+  // dither on the single captured base image — no more model calls.
+  if (baseFullRes && frameCount % REGEN_INTERVAL_FRAMES === 0) {
+    regenerateDither();
+  }
+}
+
+function drawResult() {
+  if (ditheredResult) {
+    image(ditheredResult, 0, 0, SIZE * SCALE, SIZE * SCALE);
   }
 }
 
@@ -249,14 +311,10 @@ function clearCanvas() {
   stars.forEach(s => s.selected = false);
   stars = [];
   ditheredResult = null;
+  baseFullRes = null;
+  hasTransferred = false;
+  readyForTransfer = false;
   background(0);
-
-}
-
-function drawResult() {
-  if (ditheredResult) {
-    image(ditheredResult, 0, 0, SIZE * SCALE, SIZE * SCALE);
-  }
 }
 
 function drawConnections() {
@@ -393,11 +451,12 @@ function handlePointer(x, y, isDrag = false) {
   stars.push(star);
 
   if (clickCounter === instructionNumber) {
-
     if (templateWings) templateWings.classList.add("fadeOut");
     if (instructions) instructions.innerHTML = "Click the stars to learn about the network";
 
-    
+    // Trigger the one-time transfer instead of an interval. draw() will
+    // pick this up on the next frame once the model is ready.
+    readyForTransfer = true;
   }
 }
 
@@ -428,7 +487,7 @@ class Star {
     this.noiseOffsetX = random(0, 1000);
     this.noiseOffsetY = random(1000, 2000);
     this.radius = 5;
-    this.driftRange = 0;
+    this.driftRange = 1;
     this.connections = [];
     this.x = x;
     this.y = y;
@@ -439,7 +498,7 @@ class Star {
     this.y = this.originY + map(noise(this.noiseOffsetY), 0, 1, -this.driftRange, this.driftRange);
     this.noiseOffsetX += 0.03;
     this.noiseOffsetY += 0.03;
-    if(clickCounter >= instructionNumber){
+    if (clickCounter >= instructionNumber) {
       this.driftRange = 15;
     }
   }
@@ -448,12 +507,8 @@ class Star {
 function modelLoaded() {
   statusMsg.html('Model Loaded!');
   isModelLoaded = true;
-
-  setInterval(() => {
-    if (isModelLoaded && !isTransferring && stars.length > 0 && clickCounter >= instructionNumber) {
-      transfer();
-    }
-  }, TRANSFER_INTERVAL_MS);
+  // No more setInterval here — draw() now fires transfer() exactly once,
+  // as soon as both readyForTransfer and isModelLoaded are true.
 }
 
 function transfer() {
@@ -466,17 +521,20 @@ function transfer() {
     if (err) {
       console.error(err);
       statusMsg.html('Error: Check Developer Console.');
+      hasTransferred = false; // allow a retry on the next draw() frame
       return;
     }
 
     if (result?.src) {
       statusMsg.html('Done!');
       loadImage(result.src, p5img => {
-        const tmp = createGraphics(SIZE * SCALE, SIZE * SCALE);
-        tmp.pixelDensity(1);
-        tmp.image(p5img, 0, 0, SIZE * SCALE, SIZE * SCALE);
-        ditherFloydSteinbergBW(tmp);
-        ditheredResult = tmp;
+        baseFullRes = createGraphics(SIZE * SCALE, SIZE * SCALE);
+        baseFullRes.pixelDensity(1);
+        baseFullRes.image(p5img, 0, 0, SIZE * SCALE, SIZE * SCALE);
+
+        // Kick off the first dithered frame immediately; draw()'s interval
+        // check takes over from here, faking regeneration every ~200ms.
+        regenerateDither();
       });
     }
   });

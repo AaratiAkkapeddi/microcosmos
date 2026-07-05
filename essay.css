@@ -1,0 +1,172 @@
+:root {
+    --bg: black;
+    --text: rgba(238, 233, 212, 0.7);
+    --button-hover-bg: white;
+    --button-hover-color: black;
+    --font-family: "Cormorant Semibold", serif;
+    --font-size-body: 20px;
+    --font-size-large: 30px;
+    --space: 24px;
+}
+a,
+a:link,
+a:visited {
+    color: var(--text);
+}
+
+@font-face {
+    font-family: "Cormorant Semibold";
+    src: url("./CormorantInfant-SemiBold.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Cormorant Semibold Italic";
+    src: url("./Cormorant-SemiBoldItalic.woff2") format("woff2");
+}
+blockquote p{
+    font-size: var(--font-size-large);
+    line-height: 1.5;
+    margin-bottom:0;
+}
+blockquote{
+    padding: var(--space);
+}
+h1{
+    text-align: center;
+    margin-bottom:0;
+}
+h1 + p{
+    text-align: center;
+}
+h1 + p a{
+    text-decoration: none;
+}
+img{
+    max-width: 100%;
+    height: auto;
+}
+figcaption{
+    font-size: 0.8rem;
+    text-align: center;
+    margin-top: 4px;
+}
+html,
+body {
+    min-height: 100%;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    line-height: 2;
+    font-size: var(--font-size-body);
+    font-family: Arial, sans-serif;
+}
+h1,h2,h3,blockquote p{
+    font-family: var(--font-family), sans-serif;
+}
+
+/*ESSAY */
+main{
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* --- Citation popup styling --- */
+.citenum {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    color: #bcdede;
+    font: inherit;
+    cursor: pointer;
+    font-size: calc(var(--font-size-body)/1.4);
+    vertical-align: super;
+    text-decoration: none;
+    display: inline;
+}
+
+.citenum:hover,
+.citenum:focus {
+    text-decoration: underline;
+    text-shadow: 0px 0px 20px #bcdede;
+    outline: none;
+}
+
+#citation-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+  align-items: flex-end;
+  justify-content: flex-end;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+#citation-overlay.open {
+    display: flex;
+}
+
+#citation-card {
+    background: var(--bg);
+    color: var(--text);
+    max-width: 520px;
+    width: 100%;
+    border-radius: 0;
+    padding: 24px 24px 20px 24px;
+    position: relative;
+    border:1px solid;
+    line-height: 1.5;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+#citation-card .citation-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text);
+    margin-bottom: 8px;
+    font-family: Arial, sans-serif;
+}
+
+#citation-card .citation-text {
+    font-size: 0.98rem;
+    margin: 0 0 14px 0;
+}
+
+#citation-card .citation-text a {
+    word-break: break-word;
+}
+
+#citation-card button.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    cursor: pointer;
+    color: var(--text);
+    line-height: 1;
+    padding: 4px;
+}
+
+#citation-card button.close-btn:hover {
+    color: var(--text);
+}
+
+#citation-card .source-link {
+    display: inline-block;
+    font-size: 0.85rem;
+    margin-top: 4px;
+}
+section{
+    margin: calc(var(--space) * 2) 0;
+}
