@@ -45,6 +45,9 @@ img{
     max-width: 100%;
     height: auto;
 }
+img.small{
+    max-width: 500px;
+}
 figcaption{
     font-size: 0.8rem;
     text-align: center;
@@ -169,4 +172,8 @@ main{
 }
 section{
     margin: calc(var(--space) * 2) 0;
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  align-items: center;
 }
