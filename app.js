@@ -408,9 +408,16 @@ function drawStars() {
 
   stars.forEach(star => {
     if (clickCounter >= instructionNumber && star.selected) {
+      
       textSize(50);
+      if(window.innerWidth < 768){
+        textSize(52)
+      }
     } else {
       textSize(20);
+      if(window.innerWidth < 768){
+        textSize(35)
+      }
     }
     text('✷', star.x, star.y);
   });
@@ -457,6 +464,7 @@ function toggleStarAt(x, y) {
     if (contentDiv) {
       contentDiv.innerHTML = STAR_TEXTS[clickedIndex];
     }
+    lightbox.querySelector("#light-box-content-text").scrollTop = 0;
     lightbox.style.display = "block";
   } else if (lightbox) {
     lightbox.style.display = "none";
