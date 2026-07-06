@@ -23,7 +23,26 @@ a:visited {
     font-family: "Cormorant Semibold Italic";
     src: url("./Cormorant-SemiBoldItalic.woff2") format("woff2");
 }
-
+#read-button{
+    font-family: var(--font-family), sans-serif;
+    font-size: calc(var(--font-size-body)*2);
+    text-transform:uppercase;
+    padding: 5px 9px;
+}
+#play-button{
+    font-family: var(--font-family), sans-serif;
+    font-size: calc(var(--font-size-body) * 2);
+    padding: 5px 9px;
+    text-transform:uppercase;
+}
+section{
+    display: flex;
+  flex-direction: column;
+  align-content: center;
+  align-items: center;
+  justify-content: center;
+  height: calc(100vh - 200px);
+}
 body {
     background: var(--bg);
     color: var(--text);
@@ -80,6 +99,13 @@ nav .links{
     align-items: center;
     gap: var(--space);
 }
+#werk{
+    position: fixed;
+    z-index:-1;
+    top:0;
+    height: 100vh;
+    pointer-events:none;
+}
 /* END NAVIGATION */
 main{
     text-align: left;
@@ -103,5 +129,9 @@ main{
     main{
         max-width: calc(100% - 40px);
         padding: 0 10px;
+    }
+    #werk{
+        height: 70vh;
+        top: 15vh;
     }
 }
