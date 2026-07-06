@@ -237,6 +237,9 @@ section{
     blockquote{
         margin: calc(var(--space) * 2) 0;
     }
+    blockquote em{
+        font-size: calc(var(--font-size-body) * 0.8);
+    }
     img.small{
         max-width: 70vw;
     }

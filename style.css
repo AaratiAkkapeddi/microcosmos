@@ -187,6 +187,10 @@ button:active {
     text-align: left;
     line-height: 1.3;
 }
+#light-box-content figcaption{
+    font-size: 16px;
+    font-style: italic;
+}
 #light-box-content-text{
    max-height: calc(60vh - 0px);
    overflow: scroll;
@@ -394,7 +398,9 @@ nav .links a{
     #light-box-content {
         font-size: 17px;
     }
-
+    #light-box-content figcaption{
+        font-size: 15px;
+    }
     #light-box-content-text {
         font-size: 17px;
         max-height: 25vh;
