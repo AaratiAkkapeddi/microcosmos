@@ -237,6 +237,8 @@ function setup() {
   statusMsg = select('#status');
   clearBtn = select('#clearBtn');
   clearBtn.mousePressed(clearCanvas);
+  saveBtn = select('#saveBtn');
+  saveBtn.mousePressed(downloadCanvasAsImage);
 
   const closeBtn = document.querySelector('#close-btn');
   if (closeBtn) {
@@ -487,7 +489,7 @@ class Star {
     this.noiseOffsetX = random(0, 1000);
     this.noiseOffsetY = random(1000, 2000);
     this.radius = 5;
-    this.driftRange = 1;
+    this.driftRange = 0;
     this.connections = [];
     this.x = x;
     this.y = y;
@@ -499,7 +501,7 @@ class Star {
     this.noiseOffsetX += 0.03;
     this.noiseOffsetY += 0.03;
     if (clickCounter >= instructionNumber) {
-      this.driftRange = 15;
+      this.driftRange = 0;
     }
   }
 }
@@ -550,10 +552,4 @@ function downloadCanvasAsImage() {
     return;
   }
   saveCanvas(ditheredResult, 'microcosmos', 'png');
-}
-
-function keyPressed() {
-  if (key === 's' || key === 'S') {
-    downloadCanvasAsImage();
-  }
 }

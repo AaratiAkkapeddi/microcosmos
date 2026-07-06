@@ -1,8 +1,9 @@
-<html>
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <title>BUG: Aarati Akkapeddi</title>
+    <meta name="description" content="BUG — project by Aarati Akkapeddi. Read the essay or play with constellations.">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.0/p5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.0/addons/p5.dom.min.js"></script>
@@ -12,11 +13,21 @@
 
 <body>
 
-    <main>
+    <nav aria-label="Primary navigation">
+       <div class="logo"><h3><a href="./index.html" aria-label="BUG home">BUG</a></h3></div> 
+       <div class="links">
+        <a href="./index.html" aria-current="page">Home</a>
+        <a href="./essay.html" aria-label="Read the BUG essay">Read</a>
+        <a href="./constellations.html" aria-label="Play with constellations">Play</a>
+       </div>
+        
+    </nav>
+
+    <main id="main-content">
         <h1>BUG</h1>
         <section>
-            <a class="button" href="./essay.html">Read</a>
-            <a class="button" href="./constellations.html">Play</a>
+            <a class="button" href="./essay.html" aria-label="Read the BUG essay">Read</a>
+            <a class="button" href="./constellations.html" aria-label="Play with constellations">Play</a>
         </section>
 
     </main>

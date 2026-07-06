@@ -8,6 +8,8 @@
     --button-hover-bg: white;
     --button-hover-color: black;
     --font-family: "Cormorant Semibold", serif;
+    --space: 24px;
+    
 }
 
 a,
@@ -26,13 +28,7 @@ a:visited {
     src: url("./Cormorant-SemiBoldItalic.woff2") format("woff2");
 }
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: var(--font-family), sans-serif;
-    text-align: center;
-}
+
 
 html,
 body {
@@ -103,8 +99,8 @@ button:active {
 }
 
 #output {
-    width: 100vh;
-    height: 100vh;
+    width: 90vh;
+    height: 90vh;
     position: relative;
     mix-blend-mode: lighten;
     padding: 0;
@@ -118,8 +114,8 @@ button:active {
 #output canvas {
     display: block !important;
     visibility: visible !important;
-    width: 100vh !important;
-    height: 100vh !important;
+    width: 90vh !important;
+    height: 90vh !important;
     margin-top: 0;
 }
 
@@ -148,18 +144,19 @@ button:active {
 
 #close-btn {
     position: absolute;
-    top: 20px;
+    top: 10px;
     right: 20px;
-    font-size: 24px;
+    font-size: 30px;
+    font-family: Arial, sans-serif;
     cursor: pointer;
 }
 
 #light-box {
     position: fixed;
-    top: 0;
-    left: 0%;
+    bottom: 0;
+    right: 0;
     width: auto;
-    height: auto;
+    height: 60vh;
     background: rgba(0, 0, 0, 0.9);
     display: flex;
     justify-content: center;
@@ -189,7 +186,10 @@ button:active {
     text-align: left;
     line-height: 1.3;
 }
-
+#light-box-content-text{
+   max-height: calc(60vh - 0px);
+   overflow: scroll;
+}
 @keyframes fadeOut {
     to {
         opacity: 0;
@@ -249,6 +249,25 @@ button:active {
     border: 1px solid black;
 }
 
+#saveBtn {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    background: var(--button-bg);
+    color: var(--button-color);
+    border: 1px dotted var(--button-border);
+    text-transform: uppercase;
+    font-family: "Cormorant Semibold", serif;
+    cursor: pointer;
+    z-index: 3;
+}
+
+#saveBtn:hover {
+    background: var(--button-hover-bg);
+    color: var(--button-hover-color);
+    border: 1px solid black;
+}
+
 #randomBtn,
 #transferBtn {
     display: none;
@@ -276,7 +295,45 @@ button:active {
 }
 
 
+/* NAVIGATION */
+nav{
+    z-index: 10;
+    background: transparent;
+    position:sticky; 
+    top:0;
+    left:0;
+    width: calc(100% - 40px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0px 20px;
+    color: var(--text);
+    font-family: Arial, sans-serif;
+    font-size: 17px;
+}
+nav .logo{
+    display: flex;
+    align-items: center;
+    align-content: center;
+    gap: var(--space);
+}
+nav .logo a{
+    font-family: var(--font-family);
+    text-decoration: none;
+}
+nav .links{
+    display: flex;
+    align-items: center;
+    gap: var(--space);
+    font-family: Arial, sans-serif;
+}
+nav .links a{
+    text-decoration: none;
+    color: var(--text);
+    font-family: Arial, sans-serif;
+}
 
+/* END NAVIGATION */
 
 
 
@@ -294,8 +351,12 @@ button:active {
     }
 
     #clearBtn {
+        right: 10px;
+        left: auto;
+    }
+    #saveBtn {
         left: 10px;
-        right: auto;
+        right:auto;
     }
 
     #output {
@@ -304,9 +365,9 @@ button:active {
     }
 
     #instructions {
-        width: 100%;
+        width: calc(100% - 40px);
         text-align: center;
-        top: 20px;
+        top: 60px;
         font-size: 17px;
     }
 
@@ -319,6 +380,8 @@ button:active {
         bottom: 0;
         width: calc(100% - 40px);
         padding: 20px;
+        height: 25vh;
+        overflow:hidden;
         top: auto;
         max-width: 100%;
     }
@@ -328,13 +391,13 @@ button:active {
     }
 
     #light-box-content {
-        max-height: 25vh;
-        overflow: scroll;
         font-size: 17px;
     }
 
     #light-box-content-text {
         font-size: 17px;
+        max-height: 25vh;
+        overflow: scroll;
     }
 
     #output,
