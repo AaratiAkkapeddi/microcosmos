@@ -198,7 +198,7 @@ section{
         padding: 0 10px;
     }
     blockquote{
-        padding: 0;
+        margin: calc(var(--space) * 2) 0;
     }
     img.small{
         max-width: 70vw;
