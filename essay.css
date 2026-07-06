@@ -189,12 +189,21 @@ section{
         --button-hover-bg: white;
         --button-hover-color: black;
         --font-family: "Cormorant Semibold", serif;
-        --font-size-body: 17px;
-        --font-size-large: 20px;
+        --font-size-body: 22px;
+        --font-size-large: 24px;
         --space: 15px;
     }
     main{
         max-width: calc(100% - 40px);
         padding: 0 10px;
+    }
+    blockquote{
+        padding: 0;
+    }
+    img.small{
+        max-width: 70vw;
+    }
+    figcaption{
+        max-width: 70vw;
     }
 }
