@@ -38,6 +38,7 @@ h1{
 }
 h1 + p{
     text-align: center;
+    margin-top:0;
 }
 h1 + p a{
     text-decoration: none;
