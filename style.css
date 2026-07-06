@@ -370,15 +370,16 @@ nav .links a{
     }
 
     #instructions {
-        width: calc(100% - 40px);
+       width: calc(100% - 20px);
         text-align: center;
         top: 60px;
         font-size: 17px;
+        padding: 10px;
     }
 
     #close-btn {
         top: 0;
-        font-size: 40px;
+        font-size: 30px;
     }
 
     #light-box {
@@ -395,7 +396,7 @@ nav .links a{
         max-width: 50%;
     }
 
-    #light-box-content {
+    #light-box-content p{
         font-size: 17px;
     }
     #light-box-content figcaption{

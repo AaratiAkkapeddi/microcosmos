@@ -3,9 +3,12 @@ const isMobile =
   (window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768);
 
 const SIZE = 256;
-// Lower resolution on mobile -- this is the single biggest lever on memory,
-// since the buffers below scale with (SIZE * SCALE)^2.
-const SCALE = isMobile ? 2 : 4;
+// NOTE: previously dropped to 2x on mobile to save memory, but that's a
+// visible quality regression and isn't actually needed -- reusing the
+// graphics buffer/typed array in regenerateDither()/ditherFloydSteinbergBW()
+// below already eliminates the repeated large allocations that were
+// driving memory up. Keep resolution the same on all devices.
+const SCALE = 4;
 const CONNECT_DISTANCE = 60;
 const STAR_COLOR = [236, 223, 172, 255];
 
@@ -55,6 +58,9 @@ let STAR_TEXTS = [
 
 
 ];
+
+
+
 
 // shuffle STAR_TEXTS in-place (Fisher–Yates) so stars show randomized texts
 function shuffleArray(arr) {
@@ -476,7 +482,19 @@ function mouseDragged() {
   }
 }
 
-function touchStarted() {
+// p5 binds touchstart/touchmove listeners to the whole window (not just the
+// canvas) so drags that start on the canvas keep tracking even if a finger
+// slides off it. That means a tap on the lightbox's close button, or a
+// scroll inside its text, also runs through these handlers -- and since
+// they returned `false`, p5 called preventDefault() on the native event,
+// which silently blocks the follow-up click on mobile and blocks native
+// scrolling. The fix: if the touch isn't on the sketch canvas at all, just
+// let the browser handle it normally.
+function touchStarted(event) {
+  if (event && event.target && mainCanvas && !mainCanvas.elt.contains(event.target)) {
+    return true;
+  }
+
   if (touches.length > 0) {
     // After all stars are placed, taps select a star and open the lightbox
     // (same behavior as mousePressed, via the shared toggleStarAt helper).
@@ -490,7 +508,11 @@ function touchStarted() {
   return false;
 }
 
-function touchMoved() {
+function touchMoved(event) {
+  if (event && event.target && mainCanvas && !mainCanvas.elt.contains(event.target)) {
+    return true;
+  }
+
   if (touches.length > 0) {
     handlePointer(touches[0].x, touches[0].y, true);
   }
