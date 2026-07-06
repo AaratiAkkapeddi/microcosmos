@@ -1,0 +1,73 @@
+:root {
+    --bg: black;
+    --text: rgba(238, 233, 212, 0.7);
+    --button-hover-bg: white;
+    --button-hover-color: black;
+    --font-family: "Cormorant Semibold", serif;
+    --font-size-body: 20px;
+    --font-size-large: 30px;
+    --space: 24px;
+}
+a,
+a:link,
+a:visited {
+    color: var(--text);
+}
+
+@font-face {
+    font-family: "Cormorant Semibold";
+    src: url("./CormorantInfant-SemiBold.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Cormorant Semibold Italic";
+    src: url("./Cormorant-SemiBoldItalic.woff2") format("woff2");
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    line-height: 2;
+    font-size: var(--font-size-body);
+    font-family: Arial, sans-serif;
+}
+h1,h2,h3,blockquote p{
+    font-family: var(--font-family), sans-serif;
+}
+
+button {
+    padding: 5px 9px;
+    border: 1px solid black;
+    margin-right: 5px;
+    cursor: pointer;
+}
+
+button:focus,
+button:active {
+    outline: 0;
+    border: none;
+}
+main{
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 900px;
+    margin: 0 auto;
+}
+@media (max-width: 800px) {
+    :root {
+        --bg: black;
+        --text: rgba(238, 233, 212, 0.7);
+        --button-hover-bg: white;
+        --button-hover-color: black;
+        --font-family: "Cormorant Semibold", serif;
+        --font-size-body: 22px;
+        --font-size-large: 24px;
+        --space: 15px;
+    }
+    main{
+        max-width: calc(100% - 40px);
+        padding: 0 10px;
+    }
+}
