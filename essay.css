@@ -204,7 +204,11 @@ main{
     color: var(--text);
 }
 #works-cited {
-    word-wrap: break-word;
+    word-break: break-all;
+}
+#works-cited li{
+    word-break: break-all;
+    font-size: calc(var(--font-size-body) * 0.9);
 }
 
 #citation-card .source-link {
@@ -245,6 +249,9 @@ section{
     }
     img.small{
         max-width: 70vw;
+    }
+    #works-cited{
+        max-width: 100%;
     }
     figcaption{
         max-width: 70vw;
