@@ -203,6 +203,9 @@ main{
 #citation-card button.close-btn:hover {
     color: var(--text);
 }
+#works-cited {
+    word-wrap: break-word;
+}
 
 #citation-card .source-link {
     display: inline-block;
@@ -226,7 +229,7 @@ section{
         --button-hover-bg: white;
         --button-hover-color: black;
         --font-family: "Cormorant Semibold", serif;
-        --font-size-body: 22px;
+        --font-size-body: 19px;
         --font-size-large: 24px;
         --space: 15px;
     }
